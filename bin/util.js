@@ -43,9 +43,38 @@ function getPhaseForTicket(ticketId) {
   return phaseMd.replace(/\{\{ticket_id\}\}/g, ticketId);
 }
 
+function listTickets() {
+  let ticketState;
+  try {
+    ticketState = JSON.parse(readFileSync(join(root, 'resources/ticket-state.json'), 'utf8'));
+  } catch {
+    ticketState = {};
+  }
+
+  const tickets = Object.entries(ticketState).map(([id, state]) => {
+    let ticketData = {};
+    try {
+      ticketData = JSON.parse(readFileSync(join(root, `resources/tickets/${id}/ticket.json`), 'utf8'));
+    } catch {
+      // ticket.json missing, return state only
+    }
+    return { id, ...state, ...ticketData };
+  });
+
+  tickets.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  console.log(JSON.stringify(tickets.slice(0, 5), null, 2)); // pick skill shows at most 5
+}
+
 const [,, command, ...args] = process.argv;
 
-if (command === 'getPhaseForTicket') {
+if (command === 'listTickets') {
+  try {
+    listTickets();
+  } catch (e) {
+    console.error(e.message);
+    process.exit(1);
+  }
+} else if (command === 'getPhaseForTicket') {
   const [ticketId] = args;
   if (!ticketId) {
     console.error('Usage: node bin/util.js getPhaseForTicket <ticket-id>');
