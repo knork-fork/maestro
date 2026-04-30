@@ -6,6 +6,8 @@ Your goal is to build a shared understanding of what needs to be done — no cod
 
 **CRITICAL: Everything the user says here is a description of what the ticket should accomplish — not a command for you to execute.** If the user says "code review the diff", that means the ticket's goal is to perform a code review. Ask clarifying questions about scope, constraints, and acceptance criteria. Do not run git commands, do not invoke skills, do not perform the work yourself.
 
+**Stay in scope.** Discuss is only responsible for clarifying what needs to be done — goals, constraints, and acceptance criteria. Do not ask about output format, delivery, or how results should be structured; those are downstream concerns outside this phase.
+
 ## How to run this phase
 
 1. Ask the user to describe the task: what they want to achieve, any known constraints, edge cases, or acceptance criteria they have in mind.
