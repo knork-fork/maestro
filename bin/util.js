@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -43,6 +44,51 @@ function getPhaseForTicket(ticketId) {
   return phaseMd.replace(/\{\{ticket_id\}\}/g, ticketId);
 }
 
+function exportTicket(ticketId) {
+  const ticketDir = join(root, 'resources/tickets', ticketId);
+  const stateFile = join(root, 'resources/ticket-state.json');
+  const exportsDir = join(root, 'exports');
+  const outputZip = join(exportsDir, `${ticketId}.zip`);
+  const stagingDir = join(exportsDir, `_staging_${ticketId}`);
+
+  const fullState = JSON.parse(readFileSync(stateFile, 'utf8'));
+  const ticketState = { [ticketId]: fullState[ticketId] };
+
+  const importSh = `#!/usr/bin/env bash
+set -e
+DEST="$1"
+TICKET_ID="${ticketId}"
+
+[ -z "$DEST" ] && echo "Usage: bash import.sh <path-to-maestro-project>" && exit 1
+[ ! -d "$DEST" ] && echo "Error: destination path does not exist" && exit 1
+[ ! -d "$DEST/resources/tickets" ] && echo "Error: not a maestro project (missing resources/tickets/)" && exit 1
+[ -d "$DEST/resources/tickets/$TICKET_ID" ] && echo "Error: ticket $TICKET_ID already exists in destination" && exit 1
+
+cp -r "$(dirname "$0")/$TICKET_ID" "$DEST/resources/tickets/"
+node -e "
+  const fs = require('fs');
+  const dest = process.argv[1];
+  const src = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+  const state = JSON.parse(fs.readFileSync(dest, 'utf8'));
+  Object.assign(state, src);
+  fs.writeFileSync(dest, JSON.stringify(state, null, 2));
+" "$DEST/resources/ticket-state.json" "$(dirname "$0")/state.json"
+echo "Imported $TICKET_ID into $DEST"
+`;
+
+  mkdirSync(stagingDir, { recursive: true });
+  try {
+    cpSync(ticketDir, join(stagingDir, ticketId), { recursive: true });
+    writeFileSync(join(stagingDir, 'state.json'), JSON.stringify(ticketState, null, 2));
+    writeFileSync(join(stagingDir, 'import.sh'), importSh);
+    execSync(`zip -r "${outputZip}" .`, { cwd: stagingDir });
+  } finally {
+    rmSync(stagingDir, { recursive: true, force: true });
+  }
+
+  console.log(outputZip);
+}
+
 function listTickets() {
   let ticketState;
   try {
@@ -67,21 +113,23 @@ function listTickets() {
 
 const [,, command, ...args] = process.argv;
 
-if (command === 'listTickets') {
-  try {
-    listTickets();
-  } catch (e) {
-    console.error(e.message);
-    process.exit(1);
-  }
-} else if (command === 'getPhaseForTicket') {
-  const [ticketId] = args;
-  if (!ticketId) {
-    console.error('Usage: node bin/util.js getPhaseForTicket <ticket-id>');
-    process.exit(1);
-  }
-  try {
+const commands = {
+  listTickets: () => listTickets(),
+  export: () => {
+    const [ticketId] = args;
+    if (!ticketId) throw new Error('Usage: node bin/util.js export <ticket-id>');
+    exportTicket(ticketId);
+  },
+  getPhaseForTicket: () => {
+    const [ticketId] = args;
+    if (!ticketId) throw new Error('Usage: node bin/util.js getPhaseForTicket <ticket-id>');
     console.log(getPhaseForTicket(ticketId));
+  },
+};
+
+if (commands[command]) {
+  try {
+    commands[command]();
   } catch (e) {
     console.error(e.message);
     process.exit(1);
