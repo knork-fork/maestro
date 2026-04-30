@@ -16,7 +16,7 @@ This skill accepts an optional ticket id argument (e.g. `/maestro:pick ticket-20
 Using that output:
 
 1. Sort tickets by `createdAt` descending. The first is the most recently created.
-2. Read each ticket's `ticket.json` (Bash tool) as needed to show meaningful details.
+2. Read each ticket's `ticket.json` at `resources/tickets/<id>/ticket.json` (Bash tool) as needed to show meaningful details.
 3. Offer the most recently created ticket using `AskUserQuestion`. The question should be "Continue ticket `<id>`?" and if `branch` differs from the current branch, add a description "(created on `<ticket-branch>`, you're currently on `<current-branch>`)". Use header "Ticket" and options: "Continue" and "No".
 
 4. If the user picks "Continue":
