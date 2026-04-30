@@ -17,7 +17,7 @@ import { tmpdir } from "node:os";
 import process from "node:process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const ENTRY = resolve(__dirname, "maestro.js");
+const ENTRY = resolve(__dirname, "ticket-wizard.js");
 const WRAPPER = resolve(__dirname, "_wizard-wrapper.sh");
 const PROJECT_CWD = resolve(__dirname, "..");
 
