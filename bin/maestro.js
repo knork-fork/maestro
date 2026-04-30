@@ -2,60 +2,14 @@
 
 import React, { useState } from 'react';
 import { render, Box, Text, useInput, useApp } from 'ink';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { join, dirname } from 'path';
 
 const h = React.createElement;
 
-const STEPS = [
-  {
-    name: 'Pipeline',
-    question: 'What type of work is this?',
-    multiSelect: false,
-    options: [
-      { label: 'modify',      description: 'Modify existing functionality' },
-      { label: 'bugfix',      description: 'Fix a bug' },
-      { label: 'code-review', description: 'Review code for quality and correctness' },
-      { label: 'tests',       description: 'Write or fix tests' },
-    ],
-  },
-  {
-    name: 'Stack',
-    question: 'Which stack does this target?',
-    multiSelect: false,
-    options: [
-      { label: 'backend-legacy-php', description: 'PHP backend (legacy)' },
-      { label: 'frontend-legacy-js', description: 'JavaScript frontend (legacy)' },
-      { label: 'twig-vue',           description: 'Twig templates + Vue components' },
-      { label: 'backend + frontend', description: 'Both backend and frontend' },
-    ],
-  },
-  {
-    name: 'Quality',
-    question: 'Which quality gates should be included?',
-    multiSelect: true,
-    options: [
-      { label: 'run tests',            description: 'Execute the test suite' },
-      { label: 'run static analysis',  description: 'Run phpstan or equivalent' },
-      { label: 'formatter/checkstyle', description: 'Run code formatter and style checks' },
-      { label: 'security inspection',  description: 'Inspect security-sensitive code' },
-    ],
-  },
-  {
-    name: 'Plan Checker',
-    question: 'How strict should the generated plan be?',
-    multiSelect: false,
-    options: [
-      { label: 'normal',      description: 'Balanced depth and coverage (Recommended)' },
-      { label: 'lightweight', description: 'Quick checklist, minimal overhead' },
-      { label: 'strict',      description: 'Thorough review with enforced gates' },
-    ],
-  },
-  {
-    name: 'Submit',
-    isSummary: true,
-    multiSelect: false,
-    options: [],
-  },
-];
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const STEPS = JSON.parse(readFileSync(join(__dirname, '../config/wizard.json'), 'utf8'));
 
 function slotCount(step) {
   return step.isSummary ? 2 : step.options.length + 1;
@@ -122,12 +76,13 @@ function ConfirmRow({ isActive }) {
 }
 
 function SummaryBody({ selections, cursor }) {
-  const rows = [
-    ['Pipeline',     selections[0]],
-    ['Stack',        selections[1]],
-    ['Quality',      selections[2].length ? selections[2].join(', ') : 'none'],
-    ['Plan Checker', selections[3]],
-  ];
+  const rows = STEPS
+    .map((s, i) => [s, selections[i]])
+    .filter(([s]) => !s.isSummary)
+    .map(([s, val]) => [
+      s.name,
+      s.multiSelect ? (val.length ? val.join(', ') : 'none') : val,
+    ]);
   return h(
     Box,
     { flexDirection: 'column' },
