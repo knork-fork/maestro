@@ -10,7 +10,7 @@
 //   2 — wizard never signalled start (lockfile didn't appear within timeout)
 
 import { spawn, spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve, join } from "node:path";
 import { tmpdir } from "node:os";
@@ -177,6 +177,15 @@ async function main() {
 
   rmSync(dir, { recursive: true, force: true });
   console.log("Wizard finished. Resuming.");
+
+  const stateFile = resolve(__dirname, "../resources/ticket-state.json");
+  if (existsSync(stateFile)) {
+    const state = JSON.parse(readFileSync(stateFile, "utf8"));
+    const ids = Object.keys(state).sort((a, b) =>
+      new Date(state[b].createdAt) - new Date(state[a].createdAt)
+    );
+    if (ids.length > 0) console.log(`MAESTRO_TICKET=${ids[0]}`);
+  }
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });
