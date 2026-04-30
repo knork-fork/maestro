@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { render, Box, Text, useInput, useApp } from 'ink';
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
+import { createHash } from 'crypto';
 import { fileURLToPath } from 'url';
 import { join, dirname } from 'path';
 
@@ -10,6 +11,35 @@ const h = React.createElement;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const STEPS = JSON.parse(readFileSync(join(__dirname, '../config/wizard.json'), 'utf8'));
+const RESOURCES_DIR = join(__dirname, '../resources');
+const TICKETS_DIR = join(RESOURCES_DIR, 'tickets');
+const STATE_FILE = join(RESOURCES_DIR, 'ticket-state.json');
+
+function makeTicketId() {
+  const now = new Date();
+  const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const hash = createHash('sha1').update(`${Date.now()}${Math.random()}`).digest('hex').slice(0, 6);
+  return `ticket-${date}-${hash}`;
+}
+
+function submitTicket(selections) {
+  const ticketId = makeTicketId();
+  const ticketDir = join(TICKETS_DIR, ticketId);
+  mkdirSync(ticketDir, { recursive: true });
+
+  const fields = STEPS
+    .filter(s => !s.isSummary)
+    .reduce((acc, s, i) => { acc[s.name.toLowerCase().replace(/\s+/g, '_')] = selections[i]; return acc; }, {});
+
+  const ticket = { id: ticketId, createdAt: new Date().toISOString(), ...fields };
+  writeFileSync(join(ticketDir, 'ticket.json'), JSON.stringify(ticket, null, 2));
+
+  const state = existsSync(STATE_FILE) ? JSON.parse(readFileSync(STATE_FILE, 'utf8')) : {};
+  state[ticketId] = { status: 'created', createdAt: ticket.createdAt };
+  writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
+
+  return ticketId;
+}
 
 function slotCount(step) {
   return step.isSummary ? 2 : step.options.length + 1;
@@ -176,6 +206,7 @@ function App() {
   const advance = () => {
     if (onChat) return;
     if (currentStep.isSummary) {
+      submitTicket(selections);
       exit();
       return;
     }
