@@ -3,12 +3,7 @@
     "name": "Pipeline",
     "question": "What type of work is this?",
     "multiSelect": false,
-    "options": [
-      { "label": "modify",      "description": "Modify existing functionality" },
-      { "label": "bugfix",      "description": "Fix a bug" },
-      { "label": "code-review", "description": "Review code for quality and correctness" },
-      { "label": "tests",       "description": "Write or fix tests" }
-    ]
+    "options": { "$ref": "pipelines.json" }
   },
   {
     "name": "Stack",

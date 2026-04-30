@@ -11,7 +11,19 @@ import { join, dirname } from 'path';
 const h = React.createElement;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const STEPS = JSON.parse(readFileSync(join(__dirname, '../config/wizard.json'), 'utf8'));
+const CONFIG_DIR = join(__dirname, '../config');
+
+function resolveOptions(options) {
+  if (Array.isArray(options)) return options;
+  if (options && options['$ref']) {
+    return JSON.parse(readFileSync(join(CONFIG_DIR, options['$ref']), 'utf8'))
+      .map(({ label, description }) => ({ label, description }));
+  }
+  return options ?? [];
+}
+
+const STEPS = JSON.parse(readFileSync(join(CONFIG_DIR, 'wizard.json'), 'utf8'))
+  .map(step => ({ ...step, options: resolveOptions(step.options) }));
 const RESOURCES_DIR = join(__dirname, '../resources');
 const TICKETS_DIR = join(RESOURCES_DIR, 'tickets');
 const STATE_FILE = join(RESOURCES_DIR, 'ticket-state.json');

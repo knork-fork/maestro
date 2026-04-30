@@ -1,0 +1,17 @@
+[
+  {
+    "label": "modify",
+    "description": "New features, bugfixes, refactors, etc.",
+    "steps": ["discuss", "explore", "plan", "execute"]
+  },
+  {
+    "label": "code-review",
+    "description": "Review of specific commits, diffs, branches and merge requests",
+    "steps": ["discuss", "review", "report"]
+  },
+  {
+    "label": "security-audit",
+    "description": "Security audit of code, dependencies, or infrastructure",
+    "steps": ["discuss", "audit", "report"]
+  }
+]

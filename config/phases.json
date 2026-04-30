@@ -1,0 +1,44 @@
+[
+  {
+    "label": "discuss",
+    "description": "Clarify requirements and technical specs with the user",
+    "action": "config/phases/discuss.md",
+    "status_when_done": "discussed"
+  },
+  {
+    "label": "explore",
+    "description": "Map out the relevant parts of the codebase",
+    "action": "config/phases/explore.md",
+    "status_when_done": "explored"
+  },
+  {
+    "label": "plan",
+    "description": "Draft a concrete implementation plan",
+    "action": "config/phases/plan.md",
+    "status_when_done": "planned"
+  },
+  {
+    "label": "execute",
+    "description": "Implement the plan",
+    "action": "config/phases/execute.md",
+    "status_when_done": "executed"
+  },
+  {
+    "label": "review",
+    "description": "Review the code for quality, correctness, and consistency",
+    "action": "config/phases/review.md",
+    "status_when_done": "reviewed"
+  },
+  {
+    "label": "audit",
+    "description": "Perform the security audit",
+    "action": "config/phases/audit.md",
+    "status_when_done": "audited"
+  },
+  {
+    "label": "report",
+    "description": "Summarise findings and recommendations",
+    "action": "config/phases/report.md",
+    "status_when_done": "reported"
+  }
+]
