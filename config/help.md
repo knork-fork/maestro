@@ -40,5 +40,5 @@ if 1, list the top X tickets in prose
     5. migrate-postgres    (feat/pg16, last week, phase: discuss)
     Reply with the number or name.
 alternativa: /maestro:next <ticket-folder>
- initial wizard script could also include a shortcut in each ticket folder that I can run which will quickly open claude and run /maestro:next <ticket-id> in it
+ initial wizard script could also include a shortcut in each ticket folder that I can run which will quickly open claude and run /maestro:pick <ticket-id> and /maestro:next in it
  (resume.sh)
