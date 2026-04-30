@@ -6,7 +6,7 @@
   },
   {
     "label": "code-review",
-    "description": "Review of specific commits, diffs, branches and merge requests",
+    "description": "Review of specific commits, diffs, branches and MRs",
     "steps": ["discuss", "review", "report"]
   },
   {

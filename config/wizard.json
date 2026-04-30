@@ -14,7 +14,7 @@
       { "label": "frontend-legacy-js", "description": "JavaScript frontend (legacy)" },
       { "label": "twig-vue",           "description": "Twig templates + Vue components" },
       { "label": "backend + frontend", "description": "Both backend and frontend" },
-      { "label": "maestro",            "description": "Claude Code skills, phase prompts, and config (this project)" }
+      { "label": "maestro",            "description": "Claude Code skills, phase prompts and configs" }
     ]
   },
   {
