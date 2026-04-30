@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { render, Box, Text, useInput, useApp } from 'ink';
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, chmodSync } from 'fs';
+import { execSync } from 'child_process';
 import { createHash } from 'crypto';
 import { fileURLToPath } from 'url';
 import { join, dirname } from 'path';
@@ -34,9 +35,18 @@ function submitTicket(selections) {
   const ticket = { id: ticketId, createdAt: new Date().toISOString(), ...fields };
   writeFileSync(join(ticketDir, 'ticket.json'), JSON.stringify(ticket, null, 2));
 
+  let branch = null;
+  try { branch = execSync('git branch --show-current', { encoding: 'utf8' }).trim(); } catch { /* not a git repo */ }
+
   const state = existsSync(STATE_FILE) ? JSON.parse(readFileSync(STATE_FILE, 'utf8')) : {};
-  state[ticketId] = { status: 'created', createdAt: ticket.createdAt };
+  state[ticketId] = { status: 'created', createdAt: ticket.createdAt, branch };
   writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
+
+  const resumePath = join(ticketDir, 'resume.sh');
+  writeFileSync(resumePath,
+    `#!/usr/bin/env bash\ncd "$(dirname "$0")/../../.."\nclaude "/maestro:pick ${ticketId} and then /maestro:next"\n`
+  );
+  chmodSync(resumePath, 0o755);
 
   return ticketId;
 }
