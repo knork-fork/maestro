@@ -27,8 +27,10 @@ function getPhaseForTicket(ticketId) {
   }
 
   let nextPhase;
+  let isLastPhase = false;
   if (status === 'created') {
     nextPhase = steps[0];
+    isLastPhase = steps.length === 1;
   } else {
     const currentPhase = statusToPhase[status];
     const currentIndex = steps.indexOf(currentPhase);
@@ -45,10 +47,15 @@ function getPhaseForTicket(ticketId) {
       return `Ticket ${ticketId} is complete. All phases have been finished and the ticket is now marked as done.`;
     }
     nextPhase = steps[currentIndex + 1];
+    isLastPhase = currentIndex + 1 === steps.length - 1;
   }
 
+  const lastPhaseNote = isLastPhase
+    ? '\n\n> **This is the last phase in the pipeline. When complete, set `status` for this ticket to `"done"` in `resources/ticket-state.json`. Do not suggest running `/maestro:next` after completion.**'
+    : '';
+
   const phaseMd = readFileSync(join(root, 'config/phases', `${nextPhase}.md`), 'utf8');
-  return phaseMd.replace(/\{\{ticket_id\}\}/g, ticketId);
+  return phaseMd.replace(/\{\{ticket_id\}\}/g, ticketId) + lastPhaseNote;
 }
 
 function exportTicket(ticketId) {
