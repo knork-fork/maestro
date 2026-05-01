@@ -14,6 +14,7 @@ function getPhaseForTicket(ticketId) {
 
   const status = ticketState[ticketId]?.status;
   if (!status) throw new Error(`Ticket "${ticketId}" not found in ticket-state.json`);
+  if (status === 'done') return `Ticket ${ticketId} is complete. All phases have been finished and the ticket is marked as done.`;
 
   const pipeline = pipelines.find(p => p.label === ticket.pipeline);
   if (!pipeline) throw new Error(`Pipeline "${ticket.pipeline}" not found in pipelines.json`);
@@ -35,7 +36,13 @@ function getPhaseForTicket(ticketId) {
       throw new Error(`Phase for status "${status}" not found in pipeline steps: ${steps.join(', ')}`);
     }
     if (currentIndex >= steps.length - 1) {
-      throw new Error(`All phases complete for ticket ${ticketId}`);
+      if (status !== 'done') {
+        const stateFile = join(root, 'resources/ticket-state.json');
+        const state = JSON.parse(readFileSync(stateFile, 'utf8'));
+        state[ticketId].status = 'done';
+        writeFileSync(stateFile, JSON.stringify(state, null, 2));
+      }
+      return `Ticket ${ticketId} is complete. All phases have been finished and the ticket is now marked as done.`;
     }
     nextPhase = steps[currentIndex + 1];
   }
@@ -97,7 +104,7 @@ function listTickets() {
     ticketState = {};
   }
 
-  const tickets = Object.entries(ticketState).map(([id, state]) => {
+  const tickets = Object.entries(ticketState).filter(([, state]) => state.status !== 'done').map(([id, state]) => {
     let ticketData = {};
     try {
       ticketData = JSON.parse(readFileSync(join(root, `resources/tickets/${id}/ticket.json`), 'utf8'));
