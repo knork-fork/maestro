@@ -1,26 +1,28 @@
-# Maestro
+<img src="https://github.com/user-attachments/assets/28251111-ae4d-4d16-b777-f15815d0ef11">
 
-AI workflow orchestrator for Claude Code. The wizard captures your pipeline type, target stack, quality gates, and plan strictness, then creates a ticket and drives a structured phase-based workflow via `/maestro:next`.
+## About
+
+AI workflow orchestrator for Claude Code. Define your project once, then drive it through structured, repeatable phases with a single command.
 
 ## Install
 
+Official release coming soon. For now, clone and install dependencies:
+
 ```bash
+git clone <repo-url>
+cd maestro
 npm install
 ```
 
-## Run directly
+## Run
 
-```bash
-node bin/ticket-wizard.js
-```
+Open Claude Code and run `/maestro:start` to launch the ticket wizard in a new terminal window. Follow the prompts to create a new ticket and define your workflow.
 
-The wizard takes over the terminal. Navigate with arrows, space to toggle multi-select, enter to advance, left arrow to go back, `^C` to quit.
-
-The normal usage path is via the `/maestro:start` slash command (see below), which handles launching the wizard in a detached terminal automatically.
-
-## Wizard steps
+## Wizard steps (WIP)
 
 Steps are defined in [`config/wizard.json`](config/wizard.json) and loaded at runtime.
+
+At default, wizard prompts for:
 
 | Step | Type | Notes |
 |---|---|---|
