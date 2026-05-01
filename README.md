@@ -16,25 +16,11 @@ npm install
 
 ## Run
 
-Open Claude Code and run `/maestro:start` to launch the ticket wizard in a new terminal window. Follow the prompts to create a new ticket and define your workflow.
+Open Claude Code and run `/maestro:start` to launch the ticket wizard in a new terminal window.
 
-## Wizard steps (WIP)
+## How it works
 
-Steps are defined in [`config/wizard.json`](config/wizard.json) and loaded at runtime.
-
-At default, wizard prompts for:
-
-| Step | Type | Notes |
-|---|---|---|
-| Pipeline | single | Options from `config/pipelines.json`: `modify`, `code-review`, `security-audit` |
-| Stack | single | `backend-legacy-php`, `frontend-legacy-js`, `twig-vue`, `backend + frontend`, `maestro` |
-| Quality | multi | `run tests`, `run static analysis`, `formatter/checkstyle`, `security inspection` |
-| Plan Checker | single | `normal`, `lightweight`, `strict` |
-| Submit | summary | Review and confirm |
-
-Each pipeline type maps to a specific sequence of workflow phases (e.g. `modify` → discuss → explore → plan → execute).
-
-## Workflow
+<img src="https://github.com/user-attachments/assets/6548a546-325f-4894-9de1-8e2e0d299fb5">
 
 After the wizard completes, a ticket is created under `resources/tickets/<ticket-id>/`. From there:
 
@@ -55,6 +41,26 @@ Each ticket folder also contains a `resume.sh` you can run directly to reopen Cl
 | `/maestro:pick <id>` | Jump straight to a specific ticket by id |
 | `/maestro:next` | Continue work on the current ticket (runs the next phase) |
 | `/maestro:export` | Zip a ticket for import into another maestro installation |
+
+## Wizard steps (WIP)
+
+Steps are defined in [`config/wizard.json`](config/wizard.json) and loaded at runtime.
+
+At default, wizard prompts for:
+
+| Step | Type | Notes |
+|---|---|---|
+| Pipeline | single | Options from `config/pipelines.json`: `modify`, `code-review`, `security-audit` |
+| Stack | single | `backend-legacy-php`, `frontend-legacy-js`, `twig-vue`, `backend + frontend`, `maestro` |
+| Quality | multi | `run tests`, `run static analysis`, `formatter/checkstyle`, `security inspection` |
+| Plan Checker | single | `normal`, `lightweight`, `strict` |
+| Submit | summary | Review and confirm |
+
+Each pipeline type maps to a specific sequence of workflow phases (e.g. `modify` → discuss → explore → plan → execute).
+
+---
+
+## Docs
 
 ### How `/maestro:start` works
 
@@ -84,7 +90,7 @@ If no supported terminal is found, set `MAESTRO_TERMINAL=<binary>` or just run `
 
 The launcher polls the lockfile (10s timeout for first appearance, then unbounded wait for removal) and exits when the wizard is done.
 
-## Layout
+### Layout
 
 ```
 bin/
