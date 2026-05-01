@@ -6,6 +6,7 @@ import { execSync } from 'child_process';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
+// Returns the full markdown prompt for the next phase to execute (reads the .md file).
 function getPhaseForTicket(ticketId) {
   const ticketState = JSON.parse(readFileSync(join(root, 'resources/ticket-state.json'), 'utf8'));
   const ticket = JSON.parse(readFileSync(join(root, `resources/tickets/${ticketId}/ticket.json`), 'utf8'));
@@ -56,6 +57,27 @@ function getPhaseForTicket(ticketId) {
 
   const phaseMd = readFileSync(join(root, 'config/phases', `${nextPhase}.md`), 'utf8');
   return phaseMd.replace(/\{\{ticket_id\}\}/g, ticketId) + lastPhaseNote;
+}
+
+// Returns a JSON summary of all phases in the ticket's pipeline (label + description only, no .md content).
+// Used to give the active phase context about what other phases handle, so it doesn't overstep.
+function getAllPhasesForTicket(ticketId) {
+  const ticket = JSON.parse(readFileSync(join(root, `resources/tickets/${ticketId}/ticket.json`), 'utf8'));
+  const pipelines = JSON.parse(readFileSync(join(root, 'config/pipelines.json'), 'utf8'));
+  const phases = JSON.parse(readFileSync(join(root, 'config/phases.json'), 'utf8'));
+
+  const pipeline = pipelines.find(p => p.label === ticket.pipeline);
+  if (!pipeline) throw new Error(`Pipeline "${ticket.pipeline}" not found in pipelines.json`);
+
+  const phaseMap = Object.fromEntries(phases.map(p => [p.label, p]));
+
+  const steps = pipeline.steps.map(stepLabel => {
+    const phase = phaseMap[stepLabel];
+    if (!phase) throw new Error(`Phase "${stepLabel}" not found in phases.json`);
+    return { label: phase.label, description: phase.description };
+  });
+
+  return JSON.stringify({ pipeline: pipeline.label, steps }, null, 2);
 }
 
 function exportTicket(ticketId) {
@@ -138,6 +160,11 @@ const commands = {
     const [ticketId] = args;
     if (!ticketId) throw new Error('Usage: node bin/util.js getPhaseForTicket <ticket-id>');
     console.log(getPhaseForTicket(ticketId));
+  },
+  getAllPhasesForTicket: () => {
+    const [ticketId] = args;
+    if (!ticketId) throw new Error('Usage: node bin/util.js getAllPhasesForTicket <ticket-id>');
+    console.log(getAllPhasesForTicket(ticketId));
   },
 };
 
