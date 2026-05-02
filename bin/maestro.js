@@ -97,7 +97,6 @@ async function main() {
       });
       writeFileSync(join(maestroDir, '.gitignore'), 'resources/\nexports/\n');
       console.log(`Initialized maestro in ${maestroDir}`);
-      console.log('Run "maestro install" to install Claude Code skills.');
       break;
     }
 
