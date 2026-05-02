@@ -1,7 +1,6 @@
 to-do list:
 
 - add MacOS install script
-- tweak exploration phase to ask user whether claude should explore the project itself, or user will let it know where to look
 - maestro init should early return if .maestro exists in local project
 - migrations folder, for updating files in .maestro to a new format
 - conventions (common/, stacks/, playbooks/)
