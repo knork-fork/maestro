@@ -34,8 +34,9 @@ mkdir -p "$BIN_DIR"
 chmod +x "$INSTALL_DIR/bin/maestro.js"
 ln -sf "$INSTALL_DIR/bin/maestro.js" "$BIN_DIR/maestro"
 
-# 5. Install Claude Code skills
+# 5. Install Claude Code skills (remove first so deleted skills don't persist)
 mkdir -p "$CLAUDE_COMMANDS_DIR"
+rm -rf "$CLAUDE_COMMANDS_DIR/maestro" "$CLAUDE_COMMANDS_DIR/maestro.md"
 cp -r "$INSTALL_DIR/defaults/commands/." "$CLAUDE_COMMANDS_DIR/"
 
 # 6. PATH guidance
