@@ -1,0 +1,94 @@
+# Context
+
+Maestro currently works on Linux/Ubuntu. The goal is to make installation and usage work on macOS as well. The Node.js application layer (launch-detached.js) already has macOS support via `osascript`, so the gaps are in the shell scripts and documentation.
+
+---
+
+# Current State (as of latest commits)
+
+- `version.txt` → `v0.1.2`
+- `install.sh` now removes old skills before copying (`rm -rf` on maestro commands) — already correct
+- `defaults/phases/discuss.md` refined (unrelated to macOS)
+
+# What Already Works on macOS
+
+- `bin/launch-detached.js` — already handles macOS via `osascript` (iTerm or Terminal.app)
+- `bin/maestro.js`, `bin/util.js`, `bin/ticket-wizard.js` — pure Node.js, fully cross-platform
+- `install.sh` — core logic (git clone, npm install, ln -sf, mkdir -p, rm -rf) is POSIX and works on macOS
+
+---
+
+# What Needs to Change
+
+## 1. `install.sh` — PATH guidance (lines ~32–36)
+
+**Problem:** The post-install hint hardcodes `~/.bashrc`, but macOS uses zsh by default (since Catalina). A macOS user following this instruction would add the PATH to the wrong file and get no effect.
+
+**Fix:** Detect the running shell via `$SHELL` and suggest the right RC file:
+```bash
+if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
+  echo ""
+  echo "Add $BIN_DIR to your PATH. For example:"
+  if [[ "$SHELL" == */zsh ]]; then
+    RCFILE="~/.zshrc"
+  else
+    RCFILE="~/.bashrc"
+  fi
+  echo "  echo 'export PATH=\"\$HOME/.local/bin:\$PATH\"' >> $RCFILE && source $RCFILE"
+fi
+```
+
+**Bonus (optional):** When Node.js or git are missing, print macOS-specific install hints:
+```bash
+if ! command -v node &>/dev/null; then
+  echo "Error: Node.js is required."
+  if [[ "$(uname)" == "Darwin" ]]; then
+    echo "  Install via Homebrew: brew install node"
+    echo "  Or download from https://nodejs.org"
+  else
+    echo "  Install from https://nodejs.org"
+  fi
+  exit 1
+fi
+```
+
+## 2. `bump_version.sh` — `sed -i` incompatibility
+
+**Problem:** `sed -i "..."` (GNU sed) fails on macOS. macOS ships BSD sed which requires `sed -i '' "..."`.
+
+**Fix:** Detect OS with `uname` and branch:
+```bash
+if [[ "$(uname)" == "Darwin" ]]; then
+  sed -i '' "s|/maestro/v[^/]*/install\.sh|/maestro/$VERSION/install.sh|" "$SCRIPT_DIR/README.md"
+else
+  sed -i "s|/maestro/v[^/]*/install\.sh|/maestro/$VERSION/install.sh|" "$SCRIPT_DIR/README.md"
+fi
+```
+
+## 3. `README.md` — Prerequisites and PATH setup
+
+**Problem:** The README doesn't mention macOS prerequisites or that zsh users need `~/.zshrc`.
+
+**Fixes:**
+- Add a **Prerequisites** subsection under Installation noting Node.js 18+ and git, with Homebrew install commands for macOS
+- Update the PATH setup example to show both shells (zsh for macOS, bash for Linux)
+- Confirm in the intro line that macOS is supported
+
+---
+
+# Files to Modify
+
+| File | Change |
+|------|--------|
+| `install.sh` | Shell-aware PATH hint; OS-aware missing dependency messages |
+| `bump_version.sh` | Cross-platform `sed -i` with `uname` detection |
+| `README.md` | macOS prerequisites, dual-shell PATH instructions |
+
+---
+
+# Verification
+
+1. On macOS (or a simulated environment): run `bash install.sh` and confirm it completes without errors, places the symlink at `~/.local/bin/maestro`, and prints the correct `~/.zshrc` hint
+2. Run `bash bump_version.sh v0.1.2` on macOS and confirm README.md is updated without error
+3. Confirm `maestro version` prints the correct version after install
+4. Confirm `maestro update` and `maestro uninstall` still work (no macOS-specific breakage — they use Node.js, already cross-platform)
