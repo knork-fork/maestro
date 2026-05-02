@@ -8,11 +8,21 @@ REPO_URL="https://github.com/knork-fork/maestro"
 
 # 1. Check dependencies
 if ! command -v node &>/dev/null; then
-  echo "Error: Node.js is required. Install from https://nodejs.org"
+  echo "Error: Node.js is required."
+  if [[ "$(uname)" == "Darwin" ]]; then
+    echo "  Install via Homebrew: brew install node"
+    echo "  Or download from https://nodejs.org"
+  else
+    echo "  Install from https://nodejs.org"
+  fi
   exit 1
 fi
 if ! command -v git &>/dev/null; then
   echo "Error: git is required."
+  if [[ "$(uname)" == "Darwin" ]]; then
+    echo "  Install via Homebrew: brew install git"
+    echo "  Or install Xcode Command Line Tools: xcode-select --install"
+  fi
   exit 1
 fi
 
@@ -42,8 +52,13 @@ cp -r "$INSTALL_DIR/defaults/commands/." "$CLAUDE_COMMANDS_DIR/"
 # 6. PATH guidance
 if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
   echo ""
-  echo "Add $BIN_DIR to your PATH, e.g.:"
-  echo "  echo 'export PATH=\"\$HOME/.local/bin:\$PATH\"' >> ~/.bashrc && source ~/.bashrc"
+  echo "Add $BIN_DIR to your PATH. For example:"
+  if [[ "$SHELL" == */zsh ]]; then
+    RCFILE="~/.zshrc"
+  else
+    RCFILE="~/.bashrc"
+  fi
+  echo "  echo 'export PATH=\"\$HOME/.local/bin:\$PATH\"' >> $RCFILE && source $RCFILE"
 fi
 
 echo ""

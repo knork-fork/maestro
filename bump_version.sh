@@ -23,11 +23,12 @@ NOTES_FILE="$SCRIPT_DIR/release-notes/$BARE_VERSION.md"
 CURRENT=$(cat "$SCRIPT_DIR/version.txt")
 CURRENT_BARE="${CURRENT#v}"
 version_gt() {
-  IFS='.' read -r -a a <<< "$1"
-  IFS='.' read -r -a b <<< "$2"
-  for i in 0 1 2; do
-    if (( ${a[i]} > ${b[i]} )); then return 0; fi
-    if (( ${a[i]} < ${b[i]} )); then return 1; fi
+  IFS='.' read -r a1 a2 a3 <<< "$1"
+  IFS='.' read -r b1 b2 b3 <<< "$2"
+  for pair in "$a1:$b1" "$a2:$b2" "$a3:$b3"; do
+    local x="${pair%%:*}" y="${pair##*:}"
+    if (( x > y )); then return 0; fi
+    if (( x < y )); then return 1; fi
   done
   return 1
 }
@@ -57,7 +58,11 @@ fi
 
 # Apply changes
 echo "$VERSION" > "$SCRIPT_DIR/version.txt"
-sed -i "s|/maestro/v[^/]*/install\.sh|/maestro/$VERSION/install.sh|" "$SCRIPT_DIR/README.md"
+if [[ "$(uname)" == "Darwin" ]]; then
+  sed -i '' "s|/maestro/v[^/]*/install\.sh|/maestro/$VERSION/install.sh|" "$SCRIPT_DIR/README.md"
+else
+  sed -i "s|/maestro/v[^/]*/install\.sh|/maestro/$VERSION/install.sh|" "$SCRIPT_DIR/README.md"
+fi
 
 # Commit and tag
 git -C "$SCRIPT_DIR" add version.txt README.md "release-notes/$BARE_VERSION.md"

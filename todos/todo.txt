@@ -1,6 +1,5 @@
 to-do list:
 
-- add MacOS install script
 - maestro init should early return if .maestro exists in local project
 - migrations folder, for updating files in .maestro to a new format
 - conventions (common/, stacks/, playbooks/)

@@ -1,3 +1,7 @@
+Status: complete
+
+---
+
 # Context
 
 Maestro currently works on Linux/Ubuntu. The goal is to make installation and usage work on macOS as well. The Node.js application layer (launch-detached.js) already has macOS support via `osascript`, so the gaps are in the shell scripts and documentation.

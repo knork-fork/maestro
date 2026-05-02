@@ -10,6 +10,8 @@ AI workflow orchestrator for Claude Code. Define your project once, then drive i
 curl -fsSL https://raw.githubusercontent.com/knork-fork/maestro/v0.1.5/install.sh | bash
 ```
 
+> Requires Node.js 18+ and git.
+
 The installer clones the repo, installs dependencies, symlinks the binary, and copies the Claude Code skills into `~/.claude/commands/`.
 
 Run `maestro update` to pull the latest version at any time.
@@ -163,4 +165,4 @@ curl -fsSL https://raw.githubusercontent.com/knork-fork/maestro/master/install.s
 bash bump_version.sh v0.2.0
 ```
 
-Updates `version.txt` and the install URL in this README. Commit and tag afterwards.
+Updates `version.txt` and the install URL in this README, then commits and tags.
