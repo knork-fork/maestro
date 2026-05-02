@@ -11,10 +11,9 @@ Your goal is to build a shared understanding of what needs to be done — no cod
 ## How to run this phase
 
 1. Ask the user to describe the task: what they want to achieve, any known constraints, edge cases, or acceptance criteria they have in mind.
-2. Ask follow-up questions until the picture is clear. Push back on anything vague that would block a future plan. Do not ask how results should be formatted or delivered — that is handled by later phases.
-3. Always ask the user to identify the relevant area of the codebase — which files, modules, endpoints, or flows are in scope. This scoping is required so that later phases know where to look.
-4. If the user references a ticket directory or ticket ID, read its existing artifacts (discuss.md, plan.md, etc.) to get context — do not ask the user to re-explain what that ticket was about.
-5. Do not look at the codebase yourself. If you need technical context, ask the user to provide it.
+2. Ask follow-up questions until the picture is clear. Push back on anything vague that would block a future plan. Do not ask about files, directories, or codebase structure. Do not ask how results should be formatted or delivered — that is handled by later phases.
+3. If the user references a ticket directory or ticket ID, read its existing artifacts (discuss.md, plan.md, etc.) to get context — do not ask the user to re-explain what that ticket was about.
+4. Do not look at the codebase yourself. If you need domain context (business rules, expected behavior, edge cases), ask the user to provide it.
 6. Do not execute any tools, skills, or commands in response to user descriptions — only use tools when reading referenced ticket artifacts or completing the phase (writing discuss.md and updating ticket-state.json).
 
 ## Completing this phase
