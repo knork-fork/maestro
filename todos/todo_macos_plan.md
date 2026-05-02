@@ -6,9 +6,10 @@ Maestro currently works on Linux/Ubuntu. The goal is to make installation and us
 
 # Current State (as of latest commits)
 
-- `version.txt` → `v0.1.2`
-- `install.sh` now removes old skills before copying (`rm -rf` on maestro commands) — already correct
-- `defaults/phases/discuss.md` refined (unrelated to macOS)
+- `version.txt` → `v0.1.5`
+- `install.sh` removes old skills before copying — already correct
+- `bump_version.sh` now has: version validation, `version_gt()` using bash arrays, release notes guard, `sed -i` on README.md, then `git commit + tag` — significantly expanded since original plan
+- GitHub Actions release workflow added (`.github/workflows/`) — not relevant to macOS compat
 
 # What Already Works on macOS
 
@@ -52,9 +53,11 @@ if ! command -v node &>/dev/null; then
 fi
 ```
 
-## 2. `bump_version.sh` — `sed -i` incompatibility
+## 2. `bump_version.sh` — two macOS issues
 
-**Problem:** `sed -i "..."` (GNU sed) fails on macOS. macOS ships BSD sed which requires `sed -i '' "..."`.
+### 2a. `sed -i` incompatibility (line ~50)
+
+**Problem:** `sed -i "..."` (GNU sed) fails on macOS BSD sed, which requires `sed -i '' "..."`.
 
 **Fix:** Detect OS with `uname` and branch:
 ```bash
@@ -65,14 +68,28 @@ else
 fi
 ```
 
-## 3. `README.md` — Prerequisites and PATH setup
+### 2b. `version_gt()` uses bash 4+ array syntax
 
-**Problem:** The README doesn't mention macOS prerequisites or that zsh users need `~/.zshrc`.
+**Problem:** The `version_gt` function uses `IFS='.' read -r -a arr <<< "$str"` — this requires bash 4+. macOS ships bash 3.2 (GPLv2 era) as the default `/bin/bash`. This will silently produce wrong results or error.
 
-**Fixes:**
-- Add a **Prerequisites** subsection under Installation noting Node.js 18+ and git, with Homebrew install commands for macOS
-- Update the PATH setup example to show both shells (zsh for macOS, bash for Linux)
-- Confirm in the intro line that macOS is supported
+**Fix:** Replace `read -r -a` (array flag, bash 4+ only) with scalar named variables. `<<<` herestrings work fine in bash 3.2 — only `-a` breaks it.
+```bash
+version_gt() {
+  IFS='.' read -r a1 a2 a3 <<< "$1"
+  IFS='.' read -r b1 b2 b3 <<< "$2"
+  for pair in "$a1:$b1" "$a2:$b2" "$a3:$b3"; do
+    local x="${pair%%:*}" y="${pair##*:}"
+    if (( x > y )); then return 0; fi
+    if (( x < y )); then return 1; fi
+  done
+  return 1
+}
+```
+
+## 3. `README.md` — Prerequisites and stale Dev note
+
+- Add one line under the install command: "Requires Node.js 18+ and git."
+- Remove "Commit and tag afterwards" from the Dev section — `bump_version.sh` now handles that.
 
 ---
 
@@ -81,7 +98,7 @@ fi
 | File | Change |
 |------|--------|
 | `install.sh` | Shell-aware PATH hint; OS-aware missing dependency messages |
-| `bump_version.sh` | Cross-platform `sed -i` with `uname` detection |
+| `bump_version.sh` | Cross-platform `sed -i`; fix `version_gt()` array syntax for macOS bash 3.2 |
 | `README.md` | macOS prerequisites, dual-shell PATH instructions |
 
 ---
@@ -89,6 +106,6 @@ fi
 # Verification
 
 1. On macOS (or a simulated environment): run `bash install.sh` and confirm it completes without errors, places the symlink at `~/.local/bin/maestro`, and prints the correct `~/.zshrc` hint
-2. Run `bash bump_version.sh v0.1.2` on macOS and confirm README.md is updated without error
+2. Run `bash bump_version.sh v0.2.0` on macOS (with a filled release-notes file) and confirm README.md updates, version comparison works, and git commit+tag succeed
 3. Confirm `maestro version` prints the correct version after install
 4. Confirm `maestro update` and `maestro uninstall` still work (no macOS-specific breakage — they use Node.js, already cross-platform)
