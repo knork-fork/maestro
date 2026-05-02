@@ -10,12 +10,9 @@ AI workflow orchestrator for Claude Code. Define your project once, then drive i
 curl -fsSL https://raw.githubusercontent.com/knork-fork/maestro/main/install.sh | bash
 ```
 
-Then install the Claude Code skills:
-```bash
-maestro install   # installs /maestro:* slash commands into ~/.claude/commands/
-```
+The installer clones the repo, installs dependencies, symlinks the binary, and copies the Claude Code skills into `~/.claude/commands/`.
 
-Run `maestro update` to pull the latest version of the CLI and skills at any time.
+Run `maestro update` to pull the latest version at any time.
 
 ## Run
 
@@ -38,11 +35,12 @@ Each ticket folder also contains a `resume.sh` you can run directly to reopen Cl
 ## CLI
 
 ```
-maestro install       # install Claude Code skills into ~/.claude/commands/
 maestro init          # initialize .maestro/ in the current project
-maestro update        # pull the latest version
+maestro update        # check for a newer release and update if available
+maestro version       # print the installed version
 maestro help          # show help
 maestro reset         # delete all tickets in the current project
+maestro uninstall     # remove the binary, skills, and ~/.maestro/
 ```
 
 ## Slash commands
@@ -117,7 +115,7 @@ bin/
   _wizard-wrapper.sh     # in-window wrapper that maintains the lockfile
   util.js                # ticket utilities (list, state, export)
 defaults/
-  commands/              # skill files installed to ~/.claude/commands/ by `maestro install`
+  commands/              # skill files copied to ~/.claude/commands/ by install.sh
     maestro.md
     maestro/
       start.md, next.md, pick.md, export.md, help.md

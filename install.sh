@@ -3,6 +3,7 @@ set -e
 
 INSTALL_DIR="$HOME/.maestro"
 BIN_DIR="$HOME/.local/bin"
+CLAUDE_COMMANDS_DIR="$HOME/.claude/commands"
 REPO_URL="https://github.com/knork-fork/maestro"
 
 # 1. Check dependencies
@@ -33,7 +34,11 @@ mkdir -p "$BIN_DIR"
 chmod +x "$INSTALL_DIR/bin/maestro.js"
 ln -sf "$INSTALL_DIR/bin/maestro.js" "$BIN_DIR/maestro"
 
-# 5. PATH guidance
+# 5. Install Claude Code skills
+mkdir -p "$CLAUDE_COMMANDS_DIR"
+cp -r "$INSTALL_DIR/defaults/commands/." "$CLAUDE_COMMANDS_DIR/"
+
+# 6. PATH guidance
 if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
   echo ""
   echo "Add $BIN_DIR to your PATH, e.g.:"
@@ -41,6 +46,4 @@ if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
 fi
 
 echo ""
-echo "Done. Next steps:"
-echo "  maestro install       # install Claude Code skills"
-echo "  maestro init          # initialize maestro in a project"
+echo "Done. Run 'maestro init' in a project to get started."
