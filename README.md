@@ -7,7 +7,7 @@ AI workflow orchestrator for Claude Code. Define your project once, then drive i
 ## Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/knork-fork/maestro/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/knork-fork/maestro/v0.1.0/install.sh | bash
 ```
 
 The installer clones the repo, installs dependencies, symlinks the binary, and copies the Claude Code skills into `~/.claude/commands/`.
@@ -125,8 +125,27 @@ defaults/
   help.md                # help text
   phases/                # per-phase prompt files (discuss.md, explore.md, …)
 install.sh               # curl-pipeable installer
+bump_version.sh          # bump version.txt and README install URL
 .maestro/                # per-project state (created by `maestro init`, gitignored except config/)
   config/                # copied from defaults/, tracked in git
   resources/             # ticket state and artifacts (gitignored)
   exports/               # zip archives from /maestro:export (gitignored)
 ```
+
+---
+
+## Dev
+
+**Install from master:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/knork-fork/maestro/master/install.sh | bash
+```
+
+**Bump version:**
+
+```bash
+bash bump_version.sh v0.2.0
+```
+
+Updates `version.txt` and the install URL in this README. Commit and tag afterwards.
