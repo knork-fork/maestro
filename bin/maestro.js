@@ -9,6 +9,18 @@ import { createInterface } from 'readline';
 const __installDir = dirname(dirname(fileURLToPath(import.meta.url)));
 const defaultsDir = join(__installDir, 'defaults');
 
+const USAGE = `maestro — AI workflow orchestrator
+
+Usage: maestro <command>
+
+Commands:
+  init          Initialize .maestro/ in the current project
+  update        Check for a newer release and update if available
+  version       Print the installed version
+  help          Show this help message
+  reset         Delete all tickets in the current project
+  uninstall     Remove the binary, skills, and ~/.maestro/`;
+
 const [,, command, ...args] = process.argv;
 
 const maestroDir = join(process.cwd(), '.maestro');
@@ -124,10 +136,7 @@ async function main() {
     }
 
     case 'help': {
-      const projectHelp = join(maestroDir, 'config', 'help.md');
-      const defaultHelp = join(defaultsDir, 'help.md');
-      const helpPath = existsSync(projectHelp) ? projectHelp : defaultHelp;
-      console.log(readFileSync(helpPath, 'utf8'));
+      console.log(USAGE);
       break;
     }
 
@@ -225,11 +234,7 @@ async function main() {
     case undefined:
     case '--help':
     case '-h': {
-      const projectHelp = join(maestroDir, 'config', 'help.md');
-      const defaultHelp = join(defaultsDir, 'help.md');
-      const helpPath = existsSync(projectHelp) ? projectHelp : defaultHelp;
-      if (existsSync(helpPath)) console.log(readFileSync(helpPath, 'utf8'));
-      else console.log('maestro — AI workflow orchestrator\nRun "maestro init" in your project to get started.');
+      console.log(USAGE);
       break;
     }
 
