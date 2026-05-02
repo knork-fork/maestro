@@ -32,6 +32,17 @@ After the wizard completes, a ticket is created under `.maestro/resources/ticket
 
 Each ticket folder also contains a `resume.sh` you can run directly to reopen Claude and immediately continue that ticket.
 
+## Per-project customization
+
+Phases and pipelines are read exclusively from the project's `.maestro/config/` folder. `maestro init` seeds this folder from the built-in `defaults/`, so you can customize it per project:
+
+- **Pipelines** — edit `.maestro/config/pipelines.json` to add, remove, or reorder pipeline types and their phase sequences.
+- **Phase prompts** — add or override files in `.maestro/config/phases/` (e.g. `explore.md`) to change the instructions Claude receives for that phase.
+- **Phase metadata** — edit `.maestro/config/phases.json` to adjust phase names, descriptions, or ordering.
+
+All of `.maestro/config/` is copied from `defaults/` by `maestro init` and tracked in git, so per-project changes are version-controlled alongside the codebase.
+
+
 ## CLI
 
 ```
@@ -127,7 +138,11 @@ defaults/
 install.sh               # curl-pipeable installer
 bump_version.sh          # bump version.txt and README install URL
 .maestro/                # per-project state (created by `maestro init`, gitignored except config/)
-  config/                # copied from defaults/, tracked in git
+  config/                # copied from defaults/, tracked in git — customize per project here
+    wizard.json          # wizard step definitions
+    pipelines.json       # pipeline types and their phase sequences
+    phases.json          # phase metadata
+    phases/              # per-phase prompt files (override defaults per project)
   resources/             # ticket state and artifacts (gitignored)
   exports/               # zip archives from /maestro:export (gitignored)
 ```
