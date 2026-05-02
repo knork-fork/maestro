@@ -14,4 +14,4 @@ Steps are defined in config/wizard.json and picked up automatically.
 
 Each ticket folder contains a resume.sh you can run directly to reopen
 Claude and immediately continue that ticket:
-  resources/tickets/<ticket-id>/resume.sh
+  .maestro/resources/tickets/<ticket-id>/resume.sh

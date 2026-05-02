@@ -6,7 +6,7 @@ Your goal is to produce a concrete, ordered implementation plan that can be foll
 
 ## How to run this phase
 
-1. Read the discuss artifact at `resources/tickets/{{ticket_id}}/discuss.md` and the explore artifact at `resources/tickets/{{ticket_id}}/explore.md`.
+1. Read the discuss artifact at `.maestro/resources/tickets/{{ticket_id}}/discuss.md` and the explore artifact at `.maestro/resources/tickets/{{ticket_id}}/explore.md`.
 2. Draft the plan: specific files to change, functions to add or modify, order of operations, and any migration or cleanup steps.
 3. Present the plan to the user and iterate until they are satisfied.
 4. Call out risks, unknowns, or steps that will need validation.
@@ -18,6 +18,6 @@ The plan phase is complete when the user explicitly approves the plan — phrase
 Do not advance on your own. Wait for the signal.
 
 When the user signals completion:
-1. Write the final approved plan to `resources/tickets/{{ticket_id}}/plan.md`.
-2. Read `resources/ticket-state.json`, set `status` for this ticket to `"planned"`, and write the file back.
+1. Write the final approved plan to `.maestro/resources/tickets/{{ticket_id}}/plan.md`.
+2. Read `.maestro/resources/ticket-state.json`, set `status` for this ticket to `"planned"`, and write the file back.
 3. Tell the user the plan phase is complete and suggest running `/maestro:next` to continue.

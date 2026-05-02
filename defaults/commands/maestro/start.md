@@ -5,7 +5,7 @@ allowed-tools: Bash
 
 Launch the maestro wizard in a new terminal window so it has a real TTY. Control returns here immediately; the wizard runs independently in its own window.
 
-!`node bin/launch-detached.js`
+!`maestro launch`
 
 When the command returns:
 1. Scan the output for a line in the exact format `MAESTRO_TICKET=ticket-YYYY-MM-DD-XXXXXX` (e.g. `MAESTRO_TICKET=ticket-2026-04-30-a1b2c3`). Extract everything after the `=` as the ticket id.

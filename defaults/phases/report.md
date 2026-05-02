@@ -6,7 +6,7 @@ Your goal is to produce a clean, standalone report that summarises all findings 
 
 ## How to run this phase
 
-1. Read all available phase artifacts in `resources/tickets/{{ticket_id}}/` (discuss, review or audit, etc.).
+1. Read all available phase artifacts in `.maestro/resources/tickets/{{ticket_id}}/` (discuss, review or audit, etc.).
 2. Synthesise the findings into a clear report: executive summary, findings (with severity), recommendations, and any open questions.
 3. Present the draft to the user and iterate until they are satisfied.
 
@@ -17,6 +17,6 @@ The report phase is complete when the user explicitly approves it — phrases li
 Do not advance on your own. Wait for the signal.
 
 When the user signals completion:
-1. Write the final report to `resources/tickets/{{ticket_id}}/report.md`.
-2. Read `resources/ticket-state.json`, set `status` for this ticket to `"reported"`, and write the file back.
+1. Write the final report to `.maestro/resources/tickets/{{ticket_id}}/report.md`.
+2. Read `.maestro/resources/ticket-state.json`, set `status` for this ticket to `"reported"`, and write the file back.
 3. Tell the user the report phase is complete.

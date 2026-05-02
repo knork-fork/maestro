@@ -6,7 +6,7 @@ Your goal is to review the code specified in the discuss artifact for quality, c
 
 ## How to run this phase
 
-1. Read the discuss artifact at `resources/tickets/{{ticket_id}}/discuss.md` to understand the review scope (branch, diff, commits, or files).
+1. Read the discuss artifact at `.maestro/resources/tickets/{{ticket_id}}/discuss.md` to understand the review scope (branch, diff, commits, or files).
 2. Read the relevant code. Look for: logic errors, edge cases, naming clarity, test coverage, consistency with surrounding code, and any obvious security issues.
 3. Present findings as you go — group by severity (blocker / suggestion / nit).
 4. Invite the user to discuss any finding before moving on.
@@ -18,6 +18,6 @@ The review phase is complete when the user explicitly signals satisfaction — p
 Do not advance on your own. Wait for the signal.
 
 When the user signals completion:
-1. Write a structured review report (findings by severity, overall verdict) to `resources/tickets/{{ticket_id}}/review.md`.
-2. Read `resources/ticket-state.json`, set `status` for this ticket to `"reviewed"`, and write the file back.
+1. Write a structured review report (findings by severity, overall verdict) to `.maestro/resources/tickets/{{ticket_id}}/review.md`.
+2. Read `.maestro/resources/ticket-state.json`, set `status` for this ticket to `"reviewed"`, and write the file back.
 3. Tell the user the review phase is complete and suggest running `/maestro:next` to continue.

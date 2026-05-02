@@ -24,6 +24,6 @@ The discuss phase is complete when the user explicitly signals satisfaction — 
 Do not advance on your own. Wait for the signal.
 
 When the user signals completion:
-1. Write a concise discussion summary (what was decided, key constraints, open questions if any) to `resources/tickets/{{ticket_id}}/discuss.md`.
-2. Read `resources/ticket-state.json`, set `status` for this ticket to `"discussed"`, and write the file back.
+1. Write a concise discussion summary (what was decided, key constraints, open questions if any) to `.maestro/resources/tickets/{{ticket_id}}/discuss.md`.
+2. Read `.maestro/resources/ticket-state.json`, set `status` for this ticket to `"discussed"`, and write the file back.
 3. Tell the user the discuss phase is complete and suggest running `/maestro:next` to continue.

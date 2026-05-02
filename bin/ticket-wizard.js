@@ -5,13 +5,11 @@ import { render, Box, Text, useInput, useApp } from 'ink';
 import { readFileSync, writeFileSync, mkdirSync, existsSync, chmodSync } from 'fs';
 import { execSync } from 'child_process';
 import { createHash } from 'crypto';
-import { fileURLToPath } from 'url';
-import { join, dirname } from 'path';
+import { join } from 'path';
 
 const h = React.createElement;
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const CONFIG_DIR = join(__dirname, '../config');
+const CONFIG_DIR = join(process.cwd(), '.maestro/config');
 
 function resolveOptions(options) {
   if (Array.isArray(options)) return options;
@@ -24,7 +22,7 @@ function resolveOptions(options) {
 
 const STEPS = JSON.parse(readFileSync(join(CONFIG_DIR, 'wizard.json'), 'utf8'))
   .map(step => ({ ...step, options: resolveOptions(step.options) }));
-const RESOURCES_DIR = join(__dirname, '../resources');
+const RESOURCES_DIR = join(process.cwd(), '.maestro/resources');
 const TICKETS_DIR = join(RESOURCES_DIR, 'tickets');
 const STATE_FILE = join(RESOURCES_DIR, 'ticket-state.json');
 
@@ -56,7 +54,7 @@ function submitTicket(selections) {
 
   const resumePath = join(ticketDir, 'resume.sh');
   writeFileSync(resumePath,
-    `#!/usr/bin/env bash\ncd "$(dirname "$0")/../../.."\nclaude "/maestro:pick ${ticketId} and then /maestro:next"\n`
+    `#!/usr/bin/env bash\ncd "$(dirname "$0")/../../../.."\nclaude "/maestro:pick ${ticketId} and then /maestro:next"\n`
   );
   chmodSync(resumePath, 0o755);
 

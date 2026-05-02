@@ -1,17 +1,16 @@
 #!/usr/bin/env node
 import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 import { execSync } from 'child_process';
 
-const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+const root = process.cwd();
 
 // Returns the full markdown prompt for the next phase to execute (reads the .md file).
-function getPhaseForTicket(ticketId) {
-  const ticketState = JSON.parse(readFileSync(join(root, 'resources/ticket-state.json'), 'utf8'));
-  const ticket = JSON.parse(readFileSync(join(root, `resources/tickets/${ticketId}/ticket.json`), 'utf8'));
-  const pipelines = JSON.parse(readFileSync(join(root, 'config/pipelines.json'), 'utf8'));
-  const phases = JSON.parse(readFileSync(join(root, 'config/phases.json'), 'utf8'));
+export function getPhaseForTicket(ticketId) {
+  const ticketState = JSON.parse(readFileSync(join(root, '.maestro/resources/ticket-state.json'), 'utf8'));
+  const ticket = JSON.parse(readFileSync(join(root, `.maestro/resources/tickets/${ticketId}/ticket.json`), 'utf8'));
+  const pipelines = JSON.parse(readFileSync(join(root, '.maestro/config/pipelines.json'), 'utf8'));
+  const phases = JSON.parse(readFileSync(join(root, '.maestro/config/phases.json'), 'utf8'));
 
   const status = ticketState[ticketId]?.status;
   if (!status) throw new Error(`Ticket "${ticketId}" not found in ticket-state.json`);
@@ -21,7 +20,6 @@ function getPhaseForTicket(ticketId) {
   if (!pipeline) throw new Error(`Pipeline "${ticket.pipeline}" not found in pipelines.json`);
   const steps = pipeline.steps;
 
-  // Build map: status_when_done → phase label
   const statusToPhase = {};
   for (const phase of phases) {
     statusToPhase[phase.status_when_done] = phase.label;
@@ -40,7 +38,7 @@ function getPhaseForTicket(ticketId) {
     }
     if (currentIndex >= steps.length - 1) {
       if (status !== 'done') {
-        const stateFile = join(root, 'resources/ticket-state.json');
+        const stateFile = join(root, '.maestro/resources/ticket-state.json');
         const state = JSON.parse(readFileSync(stateFile, 'utf8'));
         state[ticketId].status = 'done';
         writeFileSync(stateFile, JSON.stringify(state, null, 2));
@@ -52,19 +50,19 @@ function getPhaseForTicket(ticketId) {
   }
 
   const lastPhaseNote = isLastPhase
-    ? '\n\n> **This is the last phase in the pipeline. When complete, set `status` for this ticket to `"done"` in `resources/ticket-state.json`. Do not suggest running `/maestro:next` after completion.**'
+    ? '\n\n> **This is the last phase in the pipeline. When complete, set `status` for this ticket to `"done"` in `.maestro/resources/ticket-state.json`. Do not suggest running `/maestro:next` after completion.**'
     : '';
 
-  const phaseMd = readFileSync(join(root, 'config/phases', `${nextPhase}.md`), 'utf8');
+  const phaseMd = readFileSync(join(root, '.maestro/config/phases', `${nextPhase}.md`), 'utf8');
   return phaseMd.replace(/\{\{ticket_id\}\}/g, ticketId) + lastPhaseNote;
 }
 
 // Returns a JSON summary of all phases in the ticket's pipeline (label + description only, no .md content).
 // Used to give the active phase context about what other phases handle, so it doesn't overstep.
-function getAllPhasesForTicket(ticketId) {
-  const ticket = JSON.parse(readFileSync(join(root, `resources/tickets/${ticketId}/ticket.json`), 'utf8'));
-  const pipelines = JSON.parse(readFileSync(join(root, 'config/pipelines.json'), 'utf8'));
-  const phases = JSON.parse(readFileSync(join(root, 'config/phases.json'), 'utf8'));
+export function getAllPhasesForTicket(ticketId) {
+  const ticket = JSON.parse(readFileSync(join(root, `.maestro/resources/tickets/${ticketId}/ticket.json`), 'utf8'));
+  const pipelines = JSON.parse(readFileSync(join(root, '.maestro/config/pipelines.json'), 'utf8'));
+  const phases = JSON.parse(readFileSync(join(root, '.maestro/config/phases.json'), 'utf8'));
 
   const pipeline = pipelines.find(p => p.label === ticket.pipeline);
   if (!pipeline) throw new Error(`Pipeline "${ticket.pipeline}" not found in pipelines.json`);
@@ -80,10 +78,10 @@ function getAllPhasesForTicket(ticketId) {
   return JSON.stringify({ pipeline: pipeline.label, steps }, null, 2);
 }
 
-function exportTicket(ticketId) {
-  const ticketDir = join(root, 'resources/tickets', ticketId);
-  const stateFile = join(root, 'resources/ticket-state.json');
-  const exportsDir = join(root, 'exports');
+export function exportTicket(ticketId) {
+  const ticketDir = join(root, '.maestro/resources/tickets', ticketId);
+  const stateFile = join(root, '.maestro/resources/ticket-state.json');
+  const exportsDir = join(root, '.maestro/exports');
   const outputZip = join(exportsDir, `${ticketId}.zip`);
   const stagingDir = join(exportsDir, `_staging_${ticketId}`);
 
@@ -97,10 +95,10 @@ TICKET_ID="${ticketId}"
 
 [ -z "$DEST" ] && echo "Usage: bash import.sh <path-to-maestro-project>" && exit 1
 [ ! -d "$DEST" ] && echo "Error: destination path does not exist" && exit 1
-[ ! -d "$DEST/resources/tickets" ] && echo "Error: not a maestro project (missing resources/tickets/)" && exit 1
-[ -d "$DEST/resources/tickets/$TICKET_ID" ] && echo "Error: ticket $TICKET_ID already exists in destination" && exit 1
+[ ! -d "$DEST/.maestro/resources/tickets" ] && echo "Error: not a maestro project (missing .maestro/resources/tickets/)" && exit 1
+[ -d "$DEST/.maestro/resources/tickets/$TICKET_ID" ] && echo "Error: ticket $TICKET_ID already exists in destination" && exit 1
 
-cp -r "$(dirname "$0")/$TICKET_ID" "$DEST/resources/tickets/"
+cp -r "$(dirname "$0")/$TICKET_ID" "$DEST/.maestro/resources/tickets/"
 node -e "
   const fs = require('fs');
   const dest = process.argv[1];
@@ -108,7 +106,7 @@ node -e "
   const state = JSON.parse(fs.readFileSync(dest, 'utf8'));
   Object.assign(state, src);
   fs.writeFileSync(dest, JSON.stringify(state, null, 2));
-" "$DEST/resources/ticket-state.json" "$(dirname "$0")/state.json"
+" "$DEST/.maestro/resources/ticket-state.json" "$(dirname "$0")/state.json"
 echo "Imported $TICKET_ID into $DEST"
 `;
 
@@ -125,10 +123,10 @@ echo "Imported $TICKET_ID into $DEST"
   console.log(outputZip);
 }
 
-function listTickets() {
+export function listTickets() {
   let ticketState;
   try {
-    ticketState = JSON.parse(readFileSync(join(root, 'resources/ticket-state.json'), 'utf8'));
+    ticketState = JSON.parse(readFileSync(join(root, '.maestro/resources/ticket-state.json'), 'utf8'));
   } catch {
     ticketState = {};
   }
@@ -136,7 +134,7 @@ function listTickets() {
   const tickets = Object.entries(ticketState).filter(([, state]) => state.status !== 'done').map(([id, state]) => {
     let ticketData = {};
     try {
-      ticketData = JSON.parse(readFileSync(join(root, `resources/tickets/${id}/ticket.json`), 'utf8'));
+      ticketData = JSON.parse(readFileSync(join(root, `.maestro/resources/tickets/${id}/ticket.json`), 'utf8'));
     } catch {
       // ticket.json missing, return state only
     }
@@ -144,35 +142,5 @@ function listTickets() {
   });
 
   tickets.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  console.log(JSON.stringify(tickets.slice(0, 5), null, 2)); // pick skill shows at most 5
-}
-
-const [,, command, ...args] = process.argv;
-
-const commands = {
-  listTickets: () => listTickets(),
-  export: () => {
-    const [ticketId] = args;
-    if (!ticketId) throw new Error('Usage: node bin/util.js export <ticket-id>');
-    exportTicket(ticketId);
-  },
-  getPhaseForTicket: () => {
-    const [ticketId] = args;
-    if (!ticketId) throw new Error('Usage: node bin/util.js getPhaseForTicket <ticket-id>');
-    console.log(getPhaseForTicket(ticketId));
-  },
-  getAllPhasesForTicket: () => {
-    const [ticketId] = args;
-    if (!ticketId) throw new Error('Usage: node bin/util.js getAllPhasesForTicket <ticket-id>');
-    console.log(getAllPhasesForTicket(ticketId));
-  },
-};
-
-if (commands[command]) {
-  try {
-    commands[command]();
-  } catch (e) {
-    console.error(e.message);
-    process.exit(1);
-  }
+  console.log(JSON.stringify(tickets.slice(0, 5), null, 2));
 }

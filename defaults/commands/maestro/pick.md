@@ -9,7 +9,7 @@ This skill accepts an optional ticket id argument (e.g. `/maestro:pick ticket-20
 
 **Otherwise**, gather context by running these two commands:
 
-!`node bin/util.js listTickets`
+!`maestro list-tickets`
 
 !`git branch --show-current`
 

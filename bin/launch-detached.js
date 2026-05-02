@@ -19,7 +19,7 @@ import process from "node:process";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ENTRY = resolve(__dirname, "ticket-wizard.js");
 const WRAPPER = resolve(__dirname, "_wizard-wrapper.sh");
-const PROJECT_CWD = resolve(__dirname, "..");
+const projectCwd = process.cwd();
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -35,17 +35,17 @@ function shQuote(s) {
 // ── platform launchers ────────────────────────────────────────────────────────
 
 function launchMac(lock) {
-  const inner = `bash ${shQuote(WRAPPER)} ${shQuote(lock)} ${shQuote(ENTRY)}`;
+  const inner = `bash ${shQuote(WRAPPER)} ${shQuote(lock)} ${shQuote(ENTRY)} ${shQuote(projectCwd)}`;
   const iterm = spawnSync("osascript", ["-e", 'application "iTerm" is running'], { encoding: "utf8" });
   const useIterm = iterm.stdout.trim() === "true";
   const script = useIterm
     ? `tell application "iTerm"
          create window with default profile
-         tell current session of current window to write text "cd ${shEscDQ(PROJECT_CWD)} && ${shEscDQ(inner)}"
+         tell current session of current window to write text "cd ${shEscDQ(projectCwd)} && ${shEscDQ(inner)}"
          activate
        end tell`
     : `tell application "Terminal"
-         do script "cd ${shEscDQ(PROJECT_CWD)} && ${shEscDQ(inner)}"
+         do script "cd ${shEscDQ(projectCwd)} && ${shEscDQ(inner)}"
          activate
        end tell`;
   return spawnSync("osascript", ["-e", script]).status === 0;
@@ -68,14 +68,14 @@ function launchWindows(lock) {
     `Write-Host ''; Write-Host \"Wizard exited with code $code. Press enter to close.\"; [void][System.Console]::ReadLine()`,
   ].join(" ");
   if (which("wt.exe")) {
-    const r = spawn("wt.exe", ["-d", PROJECT_CWD, "powershell", "-NoProfile", "-Command", ps], {
+    const r = spawn("wt.exe", ["-d", projectCwd, "powershell", "-NoProfile", "-Command", ps], {
       detached: true, stdio: "ignore",
     });
     r.unref();
     return true;
   }
   const r = spawn("cmd.exe", ["/c", "start", "powershell", "-NoProfile", "-Command", ps], {
-    cwd: PROJECT_CWD, detached: true, stdio: "ignore",
+    cwd: projectCwd, detached: true, stdio: "ignore",
   });
   r.unref();
   return true;
@@ -96,7 +96,7 @@ function launchLinux(lock) {
     const args = argsFor(term, lock);
     if (!args) continue;
     try {
-      const child = spawn(term, args, { detached: true, stdio: "ignore", cwd: PROJECT_CWD });
+      const child = spawn(term, args, { detached: true, stdio: "ignore", cwd: projectCwd });
       child.unref();
       return true;
     } catch { /* try next */ }
@@ -105,25 +105,25 @@ function launchLinux(lock) {
 }
 
 function argsFor(term, lock) {
-  const wrap = ["bash", WRAPPER, lock, ENTRY];
-  const wrapStr = `bash ${shQuote(WRAPPER)} ${shQuote(lock)} ${shQuote(ENTRY)}`;
+  const wrap = ["bash", WRAPPER, lock, ENTRY, projectCwd];
+  const wrapStr = `bash ${shQuote(WRAPPER)} ${shQuote(lock)} ${shQuote(ENTRY)} ${shQuote(projectCwd)}`;
   switch (term) {
     case "gnome-terminal":
     case "tilix":
     case "terminator":
-      return ["--working-directory", PROJECT_CWD, "--", ...wrap];
+      return ["--working-directory", projectCwd, "--", ...wrap];
     case "konsole":
-      return ["--workdir", PROJECT_CWD, "-e", ...wrap];
+      return ["--workdir", projectCwd, "-e", ...wrap];
     case "xfce4-terminal":
-      return [`--working-directory=${PROJECT_CWD}`, "-e", wrapStr];
+      return [`--working-directory=${projectCwd}`, "-e", wrapStr];
     case "alacritty":
     case "wezterm":
     case "ghostty":
-      return ["--working-directory", PROJECT_CWD, "-e", ...wrap];
+      return ["--working-directory", projectCwd, "-e", ...wrap];
     case "kitty":
-      return ["--directory", PROJECT_CWD, ...wrap];
+      return ["--directory", projectCwd, ...wrap];
     case "foot":
-      return ["--working-directory", PROJECT_CWD, ...wrap];
+      return ["--working-directory", projectCwd, ...wrap];
     case "xterm":
     case "x-terminal-emulator":
       return ["-e", wrapStr];
@@ -178,7 +178,7 @@ async function main() {
   rmSync(dir, { recursive: true, force: true });
   console.log("Wizard finished. Resuming.");
 
-  const stateFile = resolve(__dirname, "../resources/ticket-state.json");
+  const stateFile = join(projectCwd, ".maestro/resources/ticket-state.json");
   if (existsSync(stateFile)) {
     const state = JSON.parse(readFileSync(stateFile, "utf8"));
     const ids = Object.keys(state).sort((a, b) =>
