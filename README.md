@@ -7,7 +7,7 @@ AI workflow orchestrator for Claude Code. Define your project once, then drive i
 ## Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/knork-fork/maestro/v0.1.2/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/knork-fork/maestro/v0.1.3/install.sh | bash
 ```
 
 The installer clones the repo, installs dependencies, symlinks the binary, and copies the Claude Code skills into `~/.claude/commands/`.
