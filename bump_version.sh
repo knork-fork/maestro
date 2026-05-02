@@ -19,6 +19,23 @@ fi
 BARE_VERSION="${VERSION#v}"
 NOTES_FILE="$SCRIPT_DIR/release-notes/$BARE_VERSION.md"
 
+# Validate new version is greater than current
+CURRENT=$(cat "$SCRIPT_DIR/version.txt")
+CURRENT_BARE="${CURRENT#v}"
+version_gt() {
+  IFS='.' read -r -a a <<< "$1"
+  IFS='.' read -r -a b <<< "$2"
+  for i in 0 1 2; do
+    if (( ${a[i]} > ${b[i]} )); then return 0; fi
+    if (( ${a[i]} < ${b[i]} )); then return 1; fi
+  done
+  return 1
+}
+if ! version_gt "$BARE_VERSION" "$CURRENT_BARE"; then
+  echo "Error: $VERSION is not greater than current version $CURRENT"
+  exit 1
+fi
+
 # Create release notes stub if it doesn't exist
 mkdir -p "$SCRIPT_DIR/release-notes"
 if [ ! -f "$NOTES_FILE" ]; then
