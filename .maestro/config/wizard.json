@@ -10,9 +10,7 @@
     "question": "Which stack does this target?",
     "multiSelect": false,
     "options": [
-      { "label": "maestro + node.js", "description": "Both maestro configs and Node.js scripting" },
-      { "label": "node.js",           "description": "Node.js CLI scripts and shell tooling" },
-      { "label": "maestro",           "description": "Claude Code skills, phase prompts and configs" }
+      { "label": "maestro",           "description": "Claude Code skills and prompts, Node.js CLI scripts" }
     ]
   },
   {
