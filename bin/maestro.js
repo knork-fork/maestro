@@ -15,6 +15,7 @@ Usage: maestro <command>
 
 Commands:
   init          Initialize .maestro/ in the current project
+  index         Rebuild .maestro/conventions/index.json
   update        Check for a newer release and update if available
   version       Print the installed version
   help          Show this help message
@@ -118,7 +119,90 @@ async function main() {
         cpSync(join(defaultsDir, 'conventions'), conventionsDest, { recursive: true });
       }
 
+      // Run `maestro index` to generate the initial conventions index.json
+      spawnSync('node', [process.argv[1], 'index'], { stdio: 'inherit' });
+
       console.log(`Initialized maestro in ${maestroDir}`);
+      break;
+    }
+
+    case 'index': {
+      requireInit();
+      const dryRun = args.includes('--dry-run');
+
+      const conventionsDir = join(maestroDir, 'conventions');
+      const indexFile = join(conventionsDir, 'index.json');
+
+      if (!existsSync(indexFile)) {
+        console.error('Error: .maestro/conventions/index.json not found. Run "maestro init" again.');
+        process.exit(1);
+      }
+
+      const wizardFile = join(maestroDir, 'config', 'wizard.json');
+      if (existsSync(wizardFile)) {
+        const wizard = JSON.parse(readFileSync(wizardFile, 'utf8'));
+        const hasStack = Array.isArray(wizard) && wizard.some(s => s.name === 'Stack');
+        if (!hasStack) {
+          console.error('Error: wizard.json has no step with name "Stack". Add a Stack step or conventions cannot be assigned automatically.');
+          process.exit(1);
+        }
+      }
+
+      const index = { common: [], stacks: [], playbooks: [] };
+
+      function walkConventions(dir, relBase) {
+        for (const entry of readdirSync(dir, { withFileTypes: true })) {
+          const fullPath = join(dir, entry.name);
+          const relPath = relBase ? `${relBase}/${entry.name}` : entry.name;
+          if (entry.isDirectory()) {
+            walkConventions(fullPath, relPath);
+            continue;
+          }
+          if (!entry.name.endsWith('.md')) continue;
+
+          const parts = relPath.split('/');
+          const category = parts[0];
+
+          if (category === 'stacks' && parts.length === 2) {
+            console.error(`Error: ${relPath}: stack conventions must be inside a subdirectory of stacks/ (e.g. stacks/php/foo.md)`);
+            process.exit(1);
+          }
+
+          const content = readFileSync(fullPath, 'utf8');
+          const firstLine = content.split('\n')[0] ?? '';
+
+          if (!firstLine.startsWith('# tags:')) {
+            console.error(`Error: ${relPath}: first line must be "# tags: tag1, tag2, ..." (got: "${firstLine}")`);
+            process.exit(1);
+          }
+
+          const tags = firstLine.slice('# tags:'.length).trim().split(',').map(t => t.trim()).filter(Boolean);
+          if (tags.length === 0) {
+            console.error(`Error: ${relPath}: must have at least one non-empty tag`);
+            process.exit(1);
+          }
+
+          if (index[category] !== undefined) {
+            index[category].push({ path: relPath, tags });
+          }
+        }
+      }
+
+      walkConventions(conventionsDir, '');
+
+      const generated = JSON.stringify(index, null, 2) + '\n';
+
+      if (dryRun) {
+        const current = readFileSync(indexFile, 'utf8');
+        if (generated === current) {
+          console.log('index.json is up to date.');
+        } else {
+          console.log('index.json is out of date. Run "maestro index" to update.');
+        }
+      } else {
+        writeFileSync(indexFile, generated);
+        console.log('Updated .maestro/conventions/index.json');
+      }
       break;
     }
 
