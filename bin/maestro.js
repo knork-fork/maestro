@@ -93,14 +93,30 @@ async function fetchLatestTag() {
 async function main() {
   switch (command) {
     case 'init': {
+      // Create local .maestro/ dir
       mkdirSync(maestroDir, { recursive: true });
+
+      // Create .maestro/config/ by copying from defaults/, excluding commands/ which go to ~/.claude/ instead
       const configDest = join(maestroDir, 'config');
-      const commandsDir = join(defaultsDir, 'commands');
-      cpSync(defaultsDir, configDest, {
-        recursive: true,
-        filter: (src) => !src.startsWith(commandsDir),
-      });
-      writeFileSync(join(maestroDir, '.gitignore'), 'resources/\nexports/\n');
+      if (!existsSync(configDest)) {
+        const commandsDir = join(defaultsDir, 'commands');
+        cpSync(defaultsDir, configDest, {
+          recursive: true,
+          filter: (src) => !src.startsWith(commandsDir),
+        });
+      }
+
+      // Create .maestro/.gitignore for resources and exports, if it didn't already exist
+      const gitignoreDest = join(maestroDir, '.gitignore');
+      if (!existsSync(gitignoreDest)) {
+        writeFileSync(gitignoreDest, 'resources/\nexports/\n');
+      }
+
+      // Create .maestro/conventions dir if it doesn't exist
+      if (!existsSync(join(maestroDir, 'conventions'))) {
+        // do-nothing
+      }
+
       console.log(`Initialized maestro in ${maestroDir}`);
       break;
     }
