@@ -124,36 +124,17 @@ If no supported terminal is found, set `MAESTRO_TERMINAL=<binary>` or run `node 
 
 The launcher polls the lockfile (10s timeout for first appearance, then unbounded wait for removal) and exits when the wizard is done.
 
-### Layout
+### How conventions are loaded
 
-```
-bin/
-  maestro.js             # CLI entry point (`maestro` binary)
-  ticket-wizard.js       # Ink wizard entry point
-  launch-detached.js     # cross-platform terminal spawner + lockfile poller
-  _wizard-wrapper.sh     # in-window wrapper that maintains the lockfile
-  util.js                # ticket utilities (list, state, export)
-defaults/
-  commands/              # skill files copied to ~/.claude/commands/ by install.sh
-    maestro.md
-    maestro/
-      start.md, next.md, pick.md, export.md, help.md
-  wizard.json            # wizard step definitions
-  pipelines.json         # pipeline types and their phase sequences
-  phases.json            # phase metadata
-  help.md                # help text
-  phases/                # per-phase prompt files (discuss.md, explore.md, …)
-install.sh               # curl-pipeable installer
-bump_version.sh          # bump version.txt and README install URL
-.maestro/                # per-project state (created by `maestro init`, gitignored except config/)
-  config/                # copied from defaults/, tracked in git — customize per project here
-    wizard.json          # wizard step definitions
-    pipelines.json       # pipeline types and their phase sequences
-    phases.json          # phase metadata
-    phases/              # per-phase prompt files (override defaults per project)
-  resources/             # ticket state and artifacts (gitignored)
-  exports/               # zip archives from /maestro:export (gitignored)
-```
+Convention files live under `.maestro/config/conventions/`. Each file must begin with a `# tags: tag1, tag2, ...` line — tags are how Claude decides which conventions are relevant to the current phase.
+
+`maestro index` builds `.maestro/conventions/index.json`, a map of `{ path, tags }` entries grouped by category. The index (paths + tags only, not file contents) is passed to Claude at the start of each phase. Claude then reads individual convention files selectively, based on tag relevance to the work at hand.
+
+Which index entries are included depends on the subfolder:
+
+- **`common/`** — all entries are always included in the index passed to Claude.
+- **`playbooks/`** — all entries are always included in the index passed to Claude.
+- **`stacks/`** — entries are filtered by the stack selected in the ticket wizard. Only entries whose path matches the chosen stack are included, so irrelevant stack conventions are never surfaced.
 
 ---
 
