@@ -1,5 +1,14 @@
 {
-  "common": [],
+  "common": [
+    {
+      "path": "common/keep-useful-comments.md",
+      "tags": [
+        "comments",
+        "code-style",
+        "documentation"
+      ]
+    }
+  ],
   "stacks": [],
   "playbooks": []
 }
