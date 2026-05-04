@@ -10,6 +10,17 @@ Your goal is to produce a clean, standalone report that summarises all findings 
 2. Synthesise the findings into a clear report: executive summary, findings (with severity), recommendations, and any open questions.
 3. Present the draft to the user and iterate until they are satisfied.
 
+## Conventions for reporting
+
+The router's "pick fresh conventions from the index" instruction does not apply to this phase. Report synthesises prior findings rather than making new decisions, and its output is documentation, not code.
+
+Instead:
+1. Read the conventions to apply from any inbound artifacts (review, audit, plan, etc.) at the start of this phase. Any unresolved violations of those conventions belong in the report as findings.
+2. If a convention covers documentation style itself (formatting, terminology, severity language), apply it while drafting.
+3. For everything else, default to clarity and consistency with the inbound artifacts rather than reaching for the index. Earlier phases were responsible for convention selection; report shouldn't second-guess.
+
+Don't write conventions to apply into report.md's artifact. Report is typically a terminal phase; there's nothing downstream that needs to inherit convention choices.
+
 ## Completing this phase
 
 The report phase is complete when the user explicitly approves it — phrases like "looks good", "publish it", "done", or "ship it".

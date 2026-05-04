@@ -11,6 +11,12 @@ Your goal is to produce a concrete, ordered implementation plan that can be foll
 3. Present the plan to the user and iterate until they are satisfied.
 4. Call out risks, unknowns, or steps that will need validation.
 
+## Conventions for planning
+
+The router's convention instructions apply normally here. Note that plan is typically the heaviest convention-loading phase — your work spans the full implementation, so most code-style and stack conventions will apply. Lean toward loading rather than skipping when in doubt: the cost of missing a convention here is that execute will violate it; the cost of loading one that turns out not to apply is small.
+
+Conventions you load that bear on execute's code-writing belong in the plan artifact's "conventions to apply" section, so execute inherits them without rediscovering.
+
 ## Completing this phase
 
 The plan phase is complete when the user explicitly approves the plan — phrases like "looks good", "let's go", "approved", "ship it", or "next".

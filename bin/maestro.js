@@ -326,6 +326,15 @@ async function main() {
       break;
     }
 
+    case 'get-conventions-for-ticket': {
+      requireInit();
+      const [ticketId] = args;
+      if (!ticketId) { console.error('Usage: maestro get-conventions-for-ticket <ticket-id>'); process.exit(1); }
+      const { getConventionsForTicket } = await import('./util.js');
+      console.log(getConventionsForTicket(ticketId));
+      break;
+    }
+
     case 'export': {
       requireInit();
       const [ticketId] = args;
