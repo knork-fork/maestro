@@ -99,10 +99,10 @@ async function main() {
       // Create .maestro/config/ by copying from defaults/, excluding commands/ which go to ~/.claude/ instead
       const configDest = join(maestroDir, 'config');
       if (!existsSync(configDest)) {
-        const commandsDir = join(defaultsDir, 'commands');
+        const excludeDirs = ['commands', 'conventions'].map((d) => join(defaultsDir, d));
         cpSync(defaultsDir, configDest, {
           recursive: true,
-          filter: (src) => !src.startsWith(commandsDir),
+          filter: (src) => !excludeDirs.some((d) => src.startsWith(d)),
         });
       }
 
@@ -113,8 +113,9 @@ async function main() {
       }
 
       // Create .maestro/conventions dir if it doesn't exist
-      if (!existsSync(join(maestroDir, 'conventions'))) {
-        // do-nothing
+      const conventionsDest = join(maestroDir, 'conventions');
+      if (!existsSync(conventionsDest)) {
+        cpSync(join(defaultsDir, 'conventions'), conventionsDest, { recursive: true });
       }
 
       console.log(`Initialized maestro in ${maestroDir}`);
