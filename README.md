@@ -41,6 +41,10 @@ Phases and pipelines are read exclusively from the project's `.maestro/config/` 
 - **Pipelines** — edit `.maestro/config/pipelines.json` to add, remove, or reorder pipeline types and their phase sequences.
 - **Phase prompts** — add or override files in `.maestro/config/phases/` (e.g. `explore.md`) to change the instructions Claude receives for that phase.
 - **Phase metadata** — edit `.maestro/config/phases.json` to adjust phase names, descriptions, or ordering.
+- **Conventions** — add markdown files under `.maestro/config/conventions/` to create a shared knowledge base for your team. These are loaded into the context for every phase, so they can be used for general guidelines (e.g. coding style, commit message format) or specific instructions (e.g. how to run tests, deploy, etc.).
+  - `common/` — general guidelines that apply to all pipelines (e.g. commit message format)
+  - `stacks/` — instructions specific to certain tech stacks
+  - `playbooks/` — domain-specific instructions
 
 All of `.maestro/config/` is copied from `defaults/` by `maestro init` and tracked in git, so per-project changes are version-controlled alongside the codebase.
 
@@ -48,12 +52,14 @@ All of `.maestro/config/` is copied from `defaults/` by `maestro init` and track
 ## CLI
 
 ```
-maestro init          # initialize .maestro/ in the current project
-maestro update        # check for a newer release and update if available
-maestro version       # print the installed version
-maestro help          # show help
-maestro reset         # delete all tickets in the current project
-maestro uninstall     # remove the binary, skills, and ~/.maestro/
+maestro init              # initialize .maestro/ in the current project
+maestro index             # rebuild .maestro/conventions/index.json
+maestro index --dry-run   # check if index.json is up to date without writing
+maestro update            # check for a newer release and update if available
+maestro version           # print the installed version
+maestro help              # show help
+maestro reset             # delete all tickets in the current project
+maestro uninstall         # remove the binary, skills, and ~/.maestro/
 ```
 
 ## Slash commands
@@ -174,3 +180,7 @@ bash bump_version.sh v0.2.0
 ```
 
 Updates `version.txt` and the install URL in this README, then commits and tags.
+
+**CI/CD index check**
+
+Add `maestro index --dry-run` to your CI to ensure `index.json` is up to date. This prevents stale convention data from causing hard-to-debug issues in the wizard and ticket phases.
