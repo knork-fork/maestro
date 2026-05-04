@@ -7,7 +7,7 @@ AI workflow orchestrator for Claude Code. Define your project once, then drive i
 ## Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/knork-fork/maestro/v0.2.0/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/knork-fork/maestro/v0.2.1/install.sh | bash
 ```
 
 > Requires Node.js 18+ and git.
