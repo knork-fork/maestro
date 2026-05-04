@@ -197,7 +197,8 @@ async function main() {
         if (generated === current) {
           console.log('index.json is up to date.');
         } else {
-          console.log('index.json is out of date. Run "maestro index" to update.');
+          console.error('index.json is out of date. Run "maestro index" to update.');
+          process.exit(1);
         }
       } else {
         writeFileSync(indexFile, generated);

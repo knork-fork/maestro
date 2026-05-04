@@ -1,0 +1,20 @@
+name: Conventions
+
+on:
+  push:
+
+jobs:
+  check-index:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - run: npm ci
+
+      - name: Check conventions index is up to date
+        run: node bin/maestro.js index --dry-run
