@@ -24,6 +24,8 @@ Pick fresh conventions from the index *after* the user agrees on this phase's de
 
 Pick by tag relevance to the work actually happening — not topical adjacency. Load many small conventions if many apply; load none if none do. The test is per-convention: would this directly inform a decision in this phase?
 
+To read a convention file, use the path from the index directly under `.maestro/conventions/` — e.g. `common/foo.md` → `.maestro/conventions/common/foo.md`.
+
 For each picked convention:
 - If it bears on a decision already made and contradicts it: surface the conflict, ask the user.
 - If it bears on later-phase work: add it to the artifact's "conventions to apply" section.
