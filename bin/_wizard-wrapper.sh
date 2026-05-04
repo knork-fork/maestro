@@ -30,6 +30,15 @@ CODE=$?
 cleanup
 trap - EXIT INT TERM HUP
 
+# On macOS, auto-close the wizard window on a clean exit; on failure, keep the
+# window open so the user can read the error.
+if [ "$(uname)" = "Darwin" ] && [ "$CODE" -eq 0 ]; then
+  case "${TERM_PROGRAM:-}" in
+    Apple_Terminal) osascript -e 'tell application "Terminal" to close front window' 2>/dev/null && exit 0 ;;
+    iTerm.app)      osascript -e 'tell application "iTerm" to close current window' 2>/dev/null && exit 0 ;;
+  esac
+fi
+
 echo
 echo "Wizard exited with code $CODE. Press enter to close this window."
 read -r _ || true
