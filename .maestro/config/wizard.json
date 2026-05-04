@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Pipeline",
+    "question": "What type of work is this?",
+    "multiSelect": false,
+    "options": { "$ref": "pipelines.json" }
+  },
+  {
+    "name": "Stack",
+    "question": "Which stack does this target?",
+    "multiSelect": false,
+    "options": [
+      { "label": "maestro",           "description": "Claude Code skills and prompts, Node.js CLI scripts" }
+    ]
+  },
+  {
+    "name": "Plan Checker",
+    "question": "How strict should the generated plan be?",
+    "multiSelect": false,
+    "options": [
+      { "label": "normal",      "description": "Balanced depth and coverage (Recommended)" },
+      { "label": "lightweight", "description": "Quick checklist, minimal overhead" },
+      { "label": "strict",      "description": "Thorough review with enforced gates" }
+    ]
+  },
+  {
+    "name": "Submit",
+    "isSummary": true,
+    "multiSelect": false,
+    "options": []
+  }
+]

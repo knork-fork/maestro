@@ -1,0 +1,12 @@
+[
+  {
+    "label": "modify",
+    "description": "New features, bugfixes, refactors, etc.",
+    "steps": ["discuss", "explore", "plan", "execute"]
+  },
+  {
+    "label": "code-review",
+    "description": "Review of specific commits, diffs, branches and MRs",
+    "steps": ["discuss", "review", "report"]
+  }
+]

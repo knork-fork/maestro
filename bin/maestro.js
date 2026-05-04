@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { cpSync, mkdirSync, existsSync, readdirSync, rmSync, readFileSync, statSync, writeFileSync } from 'fs';
+import { cpSync, mkdirSync, existsSync, lstatSync, readdirSync, rmSync, readFileSync, statSync, writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { spawnSync } from 'child_process';
@@ -15,6 +15,7 @@ Usage: maestro <command>
 
 Commands:
   init          Initialize .maestro/ in the current project
+  index         Rebuild .maestro/conventions/index.json
   update        Check for a newer release and update if available
   version       Print the installed version
   help          Show this help message
@@ -30,6 +31,11 @@ function requireInit() {
     console.error('Error: No .maestro/ folder found in the current directory.\nRun "maestro init" to initialize maestro for this project.');
     process.exit(1);
   }
+}
+
+function isDevMode() {
+  const installLink = join(homedir(), '.maestro');
+  try { return lstatSync(installLink).isSymbolicLink(); } catch { return false; }
 }
 
 function getLocalVersion() {
@@ -88,25 +94,131 @@ async function fetchLatestTag() {
 async function main() {
   switch (command) {
     case 'init': {
+      // Create local .maestro/ dir
       mkdirSync(maestroDir, { recursive: true });
+
+      // Create .maestro/config/ by copying from defaults/, excluding commands/ which go to ~/.claude/ instead
       const configDest = join(maestroDir, 'config');
-      const commandsDir = join(defaultsDir, 'commands');
-      cpSync(defaultsDir, configDest, {
-        recursive: true,
-        filter: (src) => !src.startsWith(commandsDir),
-      });
-      writeFileSync(join(maestroDir, '.gitignore'), 'resources/\nexports/\n');
+      if (!existsSync(configDest)) {
+        const excludeDirs = ['commands', 'conventions'].map((d) => join(defaultsDir, d));
+        cpSync(defaultsDir, configDest, {
+          recursive: true,
+          filter: (src) => !excludeDirs.some((d) => src.startsWith(d)),
+        });
+      }
+
+      // Create .maestro/.gitignore for resources and exports, if it didn't already exist
+      const gitignoreDest = join(maestroDir, '.gitignore');
+      if (!existsSync(gitignoreDest)) {
+        writeFileSync(gitignoreDest, 'resources/\nexports/\n');
+      }
+
+      // Create .maestro/conventions dir if it doesn't exist
+      const conventionsDest = join(maestroDir, 'conventions');
+      if (!existsSync(conventionsDest)) {
+        cpSync(join(defaultsDir, 'conventions'), conventionsDest, { recursive: true });
+      }
+
+      // Run `maestro index` to generate the initial conventions index.json
+      spawnSync('node', [process.argv[1], 'index'], { stdio: 'ignore' });
+
       console.log(`Initialized maestro in ${maestroDir}`);
       break;
     }
 
+    case 'index': {
+      requireInit();
+      const dryRun = args.includes('--dry-run');
+
+      const conventionsDir = join(maestroDir, 'conventions');
+      const indexFile = join(conventionsDir, 'index.json');
+
+      if (!existsSync(indexFile)) {
+        console.error('Error: .maestro/conventions/index.json not found. Run "maestro init" again.');
+        process.exit(1);
+      }
+
+      const wizardFile = join(maestroDir, 'config', 'wizard.json');
+      if (existsSync(wizardFile)) {
+        const wizard = JSON.parse(readFileSync(wizardFile, 'utf8'));
+        const hasStack = Array.isArray(wizard) && wizard.some(s => s.name === 'Stack');
+        if (!hasStack) {
+          console.error('Error: wizard.json has no step with name "Stack". Add a Stack step or conventions cannot be assigned automatically.');
+          process.exit(1);
+        }
+      }
+
+      const index = { common: [], stacks: [], playbooks: [] };
+
+      function walkConventions(dir, relBase) {
+        for (const entry of readdirSync(dir, { withFileTypes: true })) {
+          const fullPath = join(dir, entry.name);
+          const relPath = relBase ? `${relBase}/${entry.name}` : entry.name;
+          if (entry.isDirectory()) {
+            walkConventions(fullPath, relPath);
+            continue;
+          }
+          if (!entry.name.endsWith('.md')) continue;
+
+          const parts = relPath.split('/');
+          const category = parts[0];
+
+          if (category === 'stacks' && parts.length === 2) {
+            console.error(`Error: ${relPath}: stack conventions must be inside a subdirectory of stacks/ (e.g. stacks/php/foo.md)`);
+            process.exit(1);
+          }
+
+          const content = readFileSync(fullPath, 'utf8');
+          const firstLine = content.split('\n')[0] ?? '';
+
+          if (!firstLine.startsWith('# tags:')) {
+            console.error(`Error: ${relPath}: first line must be "# tags: tag1, tag2, ..." (got: "${firstLine}")`);
+            process.exit(1);
+          }
+
+          const tags = firstLine.slice('# tags:'.length).trim().split(',').map(t => t.trim()).filter(Boolean);
+          if (tags.length === 0) {
+            console.error(`Error: ${relPath}: must have at least one non-empty tag`);
+            process.exit(1);
+          }
+
+          if (index[category] !== undefined) {
+            index[category].push({ path: relPath, tags });
+          }
+        }
+      }
+
+      walkConventions(conventionsDir, '');
+
+      const generated = JSON.stringify(index, null, 2) + '\n';
+
+      if (dryRun) {
+        const current = readFileSync(indexFile, 'utf8');
+        if (generated === current) {
+          console.log('index.json is up to date.');
+        } else {
+          console.error('index.json is out of date. Run "maestro index" to update.');
+          process.exit(1);
+        }
+      } else {
+        writeFileSync(indexFile, generated);
+        console.log('Updated .maestro/conventions/index.json');
+      }
+      break;
+    }
+
     case 'version': {
+      if (isDevMode()) { console.log('maestro DEV VERSION'); break; }
       const v = getLocalVersion();
       console.log(`maestro ${v}`);
       break;
     }
 
     case 'update': {
+      if (isDevMode()) {
+        console.error('Error: cannot update in dev mode. Run dev.sh --release to switch to the release version, or just git pull.');
+        process.exit(1);
+      }
       const localVersion = getLocalVersion();
       let latestTag = null;
 
@@ -211,6 +323,15 @@ async function main() {
       if (!ticketId) { console.error('Usage: maestro get-all-phases <ticket-id>'); process.exit(1); }
       const { getAllPhasesForTicket } = await import('./util.js');
       console.log(getAllPhasesForTicket(ticketId));
+      break;
+    }
+
+    case 'get-conventions-for-ticket': {
+      requireInit();
+      const [ticketId] = args;
+      if (!ticketId) { console.error('Usage: maestro get-conventions-for-ticket <ticket-id>'); process.exit(1); }
+      const { getConventionsForTicket } = await import('./util.js');
+      console.log(getConventionsForTicket(ticketId));
       break;
     }
 

@@ -78,6 +78,25 @@ export function getAllPhasesForTicket(ticketId) {
   return JSON.stringify({ pipeline: pipeline.label, steps }, null, 2);
 }
 
+// Returns a CSV-like string of conventions relevant to the ticket: one row per line as `<path>: <tag>, <tag>, ...`.
+// Includes all common[] entries, stacks[] entries whose path contains ticket.stack (substring), and all playbooks[] entries.
+export function getConventionsForTicket(ticketId) {
+  const ticket = JSON.parse(readFileSync(join(root, `.maestro/resources/tickets/${ticketId}/ticket.json`), 'utf8'));
+  const index = JSON.parse(readFileSync(join(root, '.maestro/conventions/index.json'), 'utf8'));
+  const stack = ticket.stack;
+
+  const rows = [];
+  const emit = entry => rows.push(`${entry.path}: ${entry.tags.join(', ')}`);
+
+  for (const entry of index.common ?? []) emit(entry);
+  for (const entry of index.stacks ?? []) {
+    if (stack && entry.path.includes(stack)) emit(entry);
+  }
+  for (const entry of index.playbooks ?? []) emit(entry);
+
+  return rows.join('\n');
+}
+
 export function exportTicket(ticketId) {
   const ticketDir = join(root, '.maestro/resources/tickets', ticketId);
   const stateFile = join(root, '.maestro/resources/ticket-state.json');

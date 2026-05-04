@@ -7,7 +7,7 @@ AI workflow orchestrator for Claude Code. Define your project once, then drive i
 ## Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/knork-fork/maestro/v0.2.1/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/knork-fork/maestro/v0.3.0/install.sh | bash
 ```
 
 > Requires Node.js 18+ and git.
@@ -41,6 +41,10 @@ Phases and pipelines are read exclusively from the project's `.maestro/config/` 
 - **Pipelines** — edit `.maestro/config/pipelines.json` to add, remove, or reorder pipeline types and their phase sequences.
 - **Phase prompts** — add or override files in `.maestro/config/phases/` (e.g. `explore.md`) to change the instructions Claude receives for that phase.
 - **Phase metadata** — edit `.maestro/config/phases.json` to adjust phase names, descriptions, or ordering.
+- **Conventions** — add markdown files under `.maestro/config/conventions/` to create a shared knowledge base for your team. These are loaded into the context for every phase, so they can be used for general guidelines (e.g. coding style, commit message format) or specific instructions (e.g. how to run tests, deploy, etc.).
+  - `common/` — general guidelines that apply to all pipelines (e.g. commit message format)
+  - `stacks/` — instructions specific to certain tech stacks
+  - `playbooks/` — domain-specific instructions
 
 All of `.maestro/config/` is copied from `defaults/` by `maestro init` and tracked in git, so per-project changes are version-controlled alongside the codebase.
 
@@ -48,12 +52,14 @@ All of `.maestro/config/` is copied from `defaults/` by `maestro init` and track
 ## CLI
 
 ```
-maestro init          # initialize .maestro/ in the current project
-maestro update        # check for a newer release and update if available
-maestro version       # print the installed version
-maestro help          # show help
-maestro reset         # delete all tickets in the current project
-maestro uninstall     # remove the binary, skills, and ~/.maestro/
+maestro init              # initialize .maestro/ in the current project
+maestro index             # rebuild .maestro/conventions/index.json
+maestro index --dry-run   # check if index.json is up to date without writing
+maestro update            # check for a newer release and update if available
+maestro version           # print the installed version
+maestro help              # show help
+maestro reset             # delete all tickets in the current project
+maestro uninstall         # remove the binary, skills, and ~/.maestro/
 ```
 
 ## Slash commands
@@ -118,36 +124,17 @@ If no supported terminal is found, set `MAESTRO_TERMINAL=<binary>` or run `node 
 
 The launcher polls the lockfile (10s timeout for first appearance, then unbounded wait for removal) and exits when the wizard is done.
 
-### Layout
+### How conventions are loaded
 
-```
-bin/
-  maestro.js             # CLI entry point (`maestro` binary)
-  ticket-wizard.js       # Ink wizard entry point
-  launch-detached.js     # cross-platform terminal spawner + lockfile poller
-  _wizard-wrapper.sh     # in-window wrapper that maintains the lockfile
-  util.js                # ticket utilities (list, state, export)
-defaults/
-  commands/              # skill files copied to ~/.claude/commands/ by install.sh
-    maestro.md
-    maestro/
-      start.md, next.md, pick.md, export.md, help.md
-  wizard.json            # wizard step definitions
-  pipelines.json         # pipeline types and their phase sequences
-  phases.json            # phase metadata
-  help.md                # help text
-  phases/                # per-phase prompt files (discuss.md, explore.md, …)
-install.sh               # curl-pipeable installer
-bump_version.sh          # bump version.txt and README install URL
-.maestro/                # per-project state (created by `maestro init`, gitignored except config/)
-  config/                # copied from defaults/, tracked in git — customize per project here
-    wizard.json          # wizard step definitions
-    pipelines.json       # pipeline types and their phase sequences
-    phases.json          # phase metadata
-    phases/              # per-phase prompt files (override defaults per project)
-  resources/             # ticket state and artifacts (gitignored)
-  exports/               # zip archives from /maestro:export (gitignored)
-```
+Convention files live under `.maestro/config/conventions/`. Each file must begin with a `# tags: tag1, tag2, ...` line — tags are how Claude decides which conventions are relevant to the current phase.
+
+`maestro index` builds `.maestro/conventions/index.json`, a map of `{ path, tags }` entries grouped by category. The index (paths + tags only, not file contents) is passed to Claude at the start of each phase. Claude then reads individual convention files selectively, based on tag relevance to the work at hand.
+
+Which index entries are included depends on the subfolder:
+
+- **`common/`** — all entries are always included in the index passed to Claude.
+- **`playbooks/`** — all entries are always included in the index passed to Claude.
+- **`stacks/`** — entries are filtered by the stack selected in the ticket wizard. Only entries whose path matches the chosen stack are included, so irrelevant stack conventions are never surfaced.
 
 ---
 
@@ -159,6 +146,14 @@ bump_version.sh          # bump version.txt and README install URL
 curl -fsSL https://raw.githubusercontent.com/knork-fork/maestro/master/install.sh | bash
 ```
 
+**Switch to dev mode:**
+
+```bash
+bash dev.sh --local
+```
+
+To switch back to the release version, run `bash dev.sh --release`.
+
 **Bump version:**
 
 ```bash
@@ -166,3 +161,7 @@ bash bump_version.sh v0.2.0
 ```
 
 Updates `version.txt` and the install URL in this README, then commits and tags.
+
+**CI/CD index check**
+
+Add `maestro index --dry-run` to your CI to ensure `index.json` is up to date. This prevents stale convention data from causing hard-to-debug issues in the wizard and ticket phases.
