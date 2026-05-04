@@ -120,7 +120,7 @@ async function main() {
       }
 
       // Run `maestro index` to generate the initial conventions index.json
-      spawnSync('node', [process.argv[1], 'index'], { stdio: 'inherit' });
+      spawnSync('node', [process.argv[1], 'index'], { stdio: 'ignore' });
 
       console.log(`Initialized maestro in ${maestroDir}`);
       break;
