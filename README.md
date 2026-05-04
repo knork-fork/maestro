@@ -159,6 +159,14 @@ bump_version.sh          # bump version.txt and README install URL
 curl -fsSL https://raw.githubusercontent.com/knork-fork/maestro/master/install.sh | bash
 ```
 
+**Switch to dev mode:**
+
+```bash
+bash dev.sh --local
+```
+
+To switch back to the release version, run `bash dev.sh --release`.
+
 **Bump version:**
 
 ```bash

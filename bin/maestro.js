@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { cpSync, mkdirSync, existsSync, readdirSync, rmSync, readFileSync, statSync, writeFileSync } from 'fs';
+import { cpSync, mkdirSync, existsSync, lstatSync, readdirSync, rmSync, readFileSync, statSync, writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { spawnSync } from 'child_process';
@@ -30,6 +30,11 @@ function requireInit() {
     console.error('Error: No .maestro/ folder found in the current directory.\nRun "maestro init" to initialize maestro for this project.');
     process.exit(1);
   }
+}
+
+function isDevMode() {
+  const installLink = join(homedir(), '.maestro');
+  try { return lstatSync(installLink).isSymbolicLink(); } catch { return false; }
 }
 
 function getLocalVersion() {
@@ -101,12 +106,17 @@ async function main() {
     }
 
     case 'version': {
+      if (isDevMode()) { console.log('maestro DEV VERSION'); break; }
       const v = getLocalVersion();
       console.log(`maestro ${v}`);
       break;
     }
 
     case 'update': {
+      if (isDevMode()) {
+        console.error('Error: cannot update in dev mode. Run dev.sh --release to switch to the release version, or just git pull.');
+        process.exit(1);
+      }
       const localVersion = getLocalVersion();
       let latestTag = null;
 
