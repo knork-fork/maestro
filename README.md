@@ -103,6 +103,18 @@ Each pipeline type maps to a specific sequence of workflow phases (e.g. `modify`
 3. Blocks the slash command (and therefore Claude) on a lockfile until the wizard exits.
 4. Returns control to Claude once the lockfile is removed.
 
+### How conventions are loaded
+
+Convention files live under `.maestro/config/conventions/`. Each file must begin with a `# tags: tag1, tag2, ...` line — tags are how Claude decides which conventions are relevant to the current phase.
+
+`maestro index` builds `.maestro/conventions/index.json`, a map of `{ path, tags }` entries grouped by category. The index (paths + tags only, not file contents) is passed to Claude at the start of each phase. Claude then reads individual convention files selectively, based on tag relevance to the work at hand.
+
+Which index entries are included depends on the subfolder:
+
+- **`common/`** — all entries are always included in the index passed to Claude.
+- **`playbooks/`** — all entries are always included in the index passed to Claude.
+- **`stacks/`** — entries are filtered by the stack selected in the ticket wizard. Only entries whose path matches the chosen stack are included, so irrelevant stack conventions are never surfaced.
+
 ### Terminal detection
 
 [bin/launch-detached.js](bin/launch-detached.js):
@@ -123,18 +135,6 @@ If no supported terminal is found, set `MAESTRO_TERMINAL=<binary>` or run `node 
 - removes the lockfile cleanly when the wizard exits, then prompts to close the window
 
 The launcher polls the lockfile (10s timeout for first appearance, then unbounded wait for removal) and exits when the wizard is done.
-
-### How conventions are loaded
-
-Convention files live under `.maestro/config/conventions/`. Each file must begin with a `# tags: tag1, tag2, ...` line — tags are how Claude decides which conventions are relevant to the current phase.
-
-`maestro index` builds `.maestro/conventions/index.json`, a map of `{ path, tags }` entries grouped by category. The index (paths + tags only, not file contents) is passed to Claude at the start of each phase. Claude then reads individual convention files selectively, based on tag relevance to the work at hand.
-
-Which index entries are included depends on the subfolder:
-
-- **`common/`** — all entries are always included in the index passed to Claude.
-- **`playbooks/`** — all entries are always included in the index passed to Claude.
-- **`stacks/`** — entries are filtered by the stack selected in the ticket wizard. Only entries whose path matches the chosen stack are included, so irrelevant stack conventions are never surfaced.
 
 ---
 
