@@ -3,3 +3,16 @@ to-do list:
 - maestro init should early return if .maestro exists in local project
 - migrations folder, for updating files in .maestro to a new format
 - conventions (common/, stacks/, playbooks/)
+
+---
+
+- script for switching between dev (~/.maestro and maestro binary symlinks of dev folder) and release
+- maestro init idempotency
+  - if files exist, don't touch
+  - if files don't exist (for example conventions/ missing in older inited dir)
+- maestro index and maestro index --dry-return
+  - check if local .maestro folder has .maestro/conventions/index.json, error "run maestro init again"
+  - display warning if wizard.json has no "name":"Stack"
+  - run through all .md files in conventions/ and check whether their layout matches schema
+  - conventions/stacks/ contains no root-level .md files (stack md can't be stackless)
+  - dry-run checks that newly generated value matches index.json
