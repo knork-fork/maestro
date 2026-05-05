@@ -159,6 +159,7 @@ async function main() {
             continue;
           }
           if (!entry.name.endsWith('.md')) continue;
+          if (entry.name === 'CLAUDE.md' || entry.name === 'README.md') continue;
 
           const parts = relPath.split('/');
           const category = parts[0];
