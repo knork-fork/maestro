@@ -89,8 +89,34 @@ export function getConventionsForTicket(ticketId) {
   const emit = entry => rows.push(`${entry.path}: ${entry.tags.join(', ')}`);
 
   for (const entry of index.common ?? []) emit(entry);
-  for (const entry of index.stacks ?? []) {
-    if (stack && entry.path.includes(stack)) emit(entry);
+  if (stack) {
+    const stackLower = stack.toLowerCase();
+    const stacks = index.stacks ?? [];
+
+    // For a path like "stacks/backend/kohana/file.md":
+    //   parts at -1 = "file.md"       (filename)
+    //   parts at -2 = "kohana"        (folder containing the file)
+    //   parts[0..-3] = "stacks/backend" (folder containing the stack folder)
+
+    // Collect directories that directly contain a sub-folder named after the stack.
+    // These dirs may have their own root-level convention files that apply to all their sub-stacks (e.g. backend-wide conventions).
+    const stackContainerDirs = new Set();
+    for (const e of stacks) {
+      const parts = e.path.split('/');
+      const containingFolder = parts[parts.length - 2];
+      if (containingFolder.toLowerCase() === stackLower)
+        stackContainerDirs.add(parts.slice(0, -2).join('/'));
+    }
+
+    // Emit entries that live directly inside the matched stack folder,
+    // or live in a directory that also contains the stack folder (e.g. stacks/backend/root.md
+    // when stack is "kohana", because stacks/backend/ contains the kohana/ sub-folder).
+    for (const e of stacks) {
+      const parts = e.path.split('/');
+      const containingFolder = parts[parts.length - 2];
+      const containingFolderPath = parts.slice(0, -1).join('/');
+      if (containingFolder.toLowerCase() === stackLower || stackContainerDirs.has(containingFolderPath)) emit(e);
+    }
   }
   for (const entry of index.playbooks ?? []) emit(entry);
 
