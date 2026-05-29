@@ -49,7 +49,7 @@ function submitTicket(selections) {
   try { branch = execSync('git branch --show-current', { encoding: 'utf8' }).trim(); } catch { /* not a git repo */ }
 
   const state = existsSync(STATE_FILE) ? JSON.parse(readFileSync(STATE_FILE, 'utf8')) : {};
-  state[ticketId] = { status: 'created', createdAt: ticket.createdAt, branch };
+  state[ticketId] = { status: 'created', createdAt: ticket.createdAt, branch, summary: '' };
   writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
 
   const resumePath = join(ticketDir, 'resume.sh');

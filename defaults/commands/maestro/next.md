@@ -4,7 +4,8 @@ allowed-tools: Bash
 ---
 
 Determine the ticket id to work on:
-- If a ticket id (format `ticket-YYYY-MM-DD-XXXXXX`) was already established in this conversation, use it.
+- If a ticket id (format `ticket-YYYY-MM-DD-XXXXXX`) was passed as an argument to this skill, use it directly — no pick, no confirmation.
+- If a ticket id was already established in this conversation, use it.
 - Otherwise, invoke `/maestro:pick` now to let the user select one, then use the id it returns before proceeding.
 
 Once you have the ticket id, run:
@@ -46,4 +47,10 @@ Each phase picks independently. The only cross-phase channel is the artifact's "
 
 ## Run the phase
 
+Before executing the phase prompt, read `.maestro/resources/ticket-state.json` and note whether `summary` for this ticket is absent or an empty string — call this **needs-summary**.
+
 Follow the phase prompt, applying conventions at the moments described above.
+
+## After the phase
+
+If **needs-summary** is true (summary was absent or empty at the start of this invocation), once the phase is complete: read `.maestro/resources/ticket-state.json`, set `summary` for this ticket to a ≤ 80-character description of what the ticket accomplishes, derived from what the user described during this phase. Keep it terse and action-oriented (e.g. `"Add --resume flag to maestro CLI"`). Write the file back.

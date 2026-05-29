@@ -17,7 +17,7 @@ Using that output:
 
 1. Tickets are already sorted by `createdAt` descending. The first is the most recently created.
 2. All ticket details are included in the `listTickets` output — do not read any additional files.
-3. Offer the most recently created ticket using `AskUserQuestion`. The question should be "Continue ticket `<id>`?" and if `branch` differs from the current branch, add a description "(created on `<ticket-branch>`, you're currently on `<current-branch>`)". Use header "Ticket" and options: "Continue" and "No".
+3. Offer the most recently created ticket using `AskUserQuestion`. The question should be "Continue `<summary>` (`<id>`)?" if `summary` is non-empty, otherwise "Continue ticket `<id>`?". If `branch` differs from the current branch, add a description "(created on `<ticket-branch>`, you're currently on `<current-branch>`)". Use header "Ticket" and options: "Continue" and "No".
 
 4. If the user picks "Continue":
    - Output `MAESTRO_TICKET=<id>` so the caller can pick it up.
@@ -28,6 +28,6 @@ Using that output:
    - "Start a new ticket"
    - "Cancel"
 
-   - **Pick a different ticket**: List up to 5 tickets in prose, sorted by `createdAt` descending, with number, id, creation time (relative), branch, and a one-line summary of the ticket fields. Use `AskUserQuestion` to let the user pick one by label. Once they pick one, output `MAESTRO_TICKET=<chosen-id>`.
+   - **Pick a different ticket**: List up to 5 tickets in prose, sorted by `createdAt` descending, with number, id, creation time (relative), branch, and the ticket's `summary` if non-empty (otherwise a one-line summary of the ticket fields). Use `AskUserQuestion` to let the user pick one by label. Once they pick one, output `MAESTRO_TICKET=<chosen-id>`.
    - **Start a new ticket**: invoke `/maestro:start`.
    - **Cancel**: stop, say nothing further.

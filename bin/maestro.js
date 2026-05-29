@@ -20,7 +20,8 @@ Commands:
   version       Print the installed version
   help          Show this help message
   reset         Delete all tickets in the current project
-  uninstall     Remove the binary, skills, and ~/.maestro/`;
+  uninstall     Remove the binary, skills, and ~/.maestro/
+  resume        Pick an open ticket and resume work in Claude Code`;
 
 const [,, command, ...args] = process.argv;
 
@@ -307,6 +308,15 @@ async function main() {
       const { listTickets } = await import('./util.js');
       listTickets();
       break;
+    }
+
+    case 'resume-list-only':
+    case 'resume': {
+      requireInit();
+      const pickerPath = join(dirname(fileURLToPath(import.meta.url)), 'resume-picker.js');
+      const pickerArgs = command === 'resume-list-only' ? ['--list-only'] : [];
+      const result = spawnSync('node', [pickerPath, ...pickerArgs], { stdio: 'inherit' });
+      process.exit(result.status ?? 0);
     }
 
     case 'get-phase': {
