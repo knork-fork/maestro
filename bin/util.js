@@ -93,29 +93,28 @@ export function getConventionsForTicket(ticketId) {
     const stackLower = stack.toLowerCase();
     const stacks = index.stacks ?? [];
 
-    // For a path like "stacks/backend/kohana/file.md":
-    //   parts at -1 = "file.md"       (filename)
-    //   parts at -2 = "kohana"        (folder containing the file)
-    //   parts[0..-3] = "stacks/backend" (folder containing the stack folder)
-
-    // Collect directories that directly contain a sub-folder named after the stack.
-    // These dirs may have their own root-level convention files that apply to all their sub-stacks (e.g. backend-wide conventions).
-    const stackContainerDirs = new Set();
+    // Collect the stack folder paths (e.g. "stacks/backend/symfony/ai-pipeline").
+    const stackFolderPaths = new Set();
     for (const e of stacks) {
       const parts = e.path.split('/');
-      const containingFolder = parts[parts.length - 2];
-      if (containingFolder.toLowerCase() === stackLower)
-        stackContainerDirs.add(parts.slice(0, -2).join('/'));
+      if (parts[parts.length - 2].toLowerCase() === stackLower)
+        stackFolderPaths.add(parts.slice(0, -1).join('/'));
     }
 
-    // Emit entries that live directly inside the matched stack folder,
-    // or live in a directory that also contains the stack folder (e.g. stacks/backend/root.md
-    // when stack is "kohana", because stacks/backend/ contains the kohana/ sub-folder).
+    // Expand each stack folder to all its ancestor directories so that conventions
+    // at every enclosing scope (e.g. stacks/backend/symfony/ and stacks/backend/) are included.
+    const ancestorDirs = new Set();
+    for (const folderPath of stackFolderPaths) {
+      const parts = folderPath.split('/');
+      for (let i = parts.length - 1; i >= 1; i--)
+        ancestorDirs.add(parts.slice(0, i).join('/'));
+    }
+
     for (const e of stacks) {
       const parts = e.path.split('/');
       const containingFolder = parts[parts.length - 2];
       const containingFolderPath = parts.slice(0, -1).join('/');
-      if (containingFolder.toLowerCase() === stackLower || stackContainerDirs.has(containingFolderPath)) emit(e);
+      if (containingFolder.toLowerCase() === stackLower || ancestorDirs.has(containingFolderPath)) emit(e);
     }
   }
   for (const entry of index.playbooks ?? []) emit(entry);
