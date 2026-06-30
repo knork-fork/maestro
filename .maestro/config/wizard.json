@@ -10,7 +10,7 @@
     "question": "Which stack does this target?",
     "multiSelect": false,
     "options": [
-      { "label": "maestro",           "description": "Claude Code skills and prompts, Node.js CLI scripts" }
+      { "label": "maestro",           "path": "stacks/maestro", "description": "Claude Code skills and prompts, Node.js CLI scripts" }
     ]
   },
   {

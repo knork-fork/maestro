@@ -79,42 +79,47 @@ export function getAllPhasesForTicket(ticketId) {
 }
 
 // Returns a CSV-like string of conventions relevant to the ticket: one row per line as `<path>: <tag>, <tag>, ...`.
-// Includes all common[] entries, stacks[] entries whose path contains ticket.stack (substring), and all playbooks[] entries.
+// Includes all common[] entries, all playbooks[] entries, and stacks[] entries living in the ticket's stack
+// directory or any of its ancestor directories. The stack directory comes from ticket['stack-path'] (a relative
+// path like "stacks/backend/symfony"); when absent it falls back to lowercase(ticket.stack) matched by folder name.
 export function getConventionsForTicket(ticketId) {
   const ticket = JSON.parse(readFileSync(join(root, `.maestro/resources/tickets/${ticketId}/ticket.json`), 'utf8'));
   const index = JSON.parse(readFileSync(join(root, '.maestro/conventions/index.json'), 'utf8'));
   const stack = ticket.stack;
+  const stackPath = ticket['stack-path'];
 
   const rows = [];
   const emit = entry => rows.push(`${entry.path}: ${entry.tags.join(', ')}`);
 
   for (const entry of index.common ?? []) emit(entry);
-  if (stack) {
-    const stackLower = stack.toLowerCase();
+  if (stack || stackPath) {
     const stacks = index.stacks ?? [];
 
-    // Collect the stack folder paths (e.g. "stacks/backend/symfony/ai-pipeline").
+    // Leaf stack folder path(s) whose conventions apply. Prefer the explicit stack-path;
+    // otherwise fall back to lowercase(stack) matched by folder name (backwards compatibility).
     const stackFolderPaths = new Set();
-    for (const e of stacks) {
-      const parts = e.path.split('/');
-      if (parts[parts.length - 2].toLowerCase() === stackLower)
-        stackFolderPaths.add(parts.slice(0, -1).join('/'));
+    if (stackPath) {
+      stackFolderPaths.add(stackPath.replace(/\/+$/, '').toLowerCase());
+    } else {
+      const stackLower = stack.toLowerCase();
+      for (const e of stacks) {
+        const parts = e.path.split('/');
+        if (parts[parts.length - 2].toLowerCase() === stackLower)
+          stackFolderPaths.add(parts.slice(0, -1).join('/').toLowerCase());
+      }
     }
 
-    // Expand each stack folder to all its ancestor directories so that conventions
-    // at every enclosing scope (e.g. stacks/backend/symfony/ and stacks/backend/) are included.
-    const ancestorDirs = new Set();
+    // Expand each leaf to itself + all ancestor directories so that conventions at every
+    // enclosing scope (e.g. stacks/backend/symfony/ and stacks/backend/) are included.
+    const applicableDirs = new Set();
     for (const folderPath of stackFolderPaths) {
       const parts = folderPath.split('/');
-      for (let i = parts.length - 1; i >= 1; i--)
-        ancestorDirs.add(parts.slice(0, i).join('/'));
+      for (let i = parts.length; i >= 1; i--) applicableDirs.add(parts.slice(0, i).join('/'));
     }
 
     for (const e of stacks) {
-      const parts = e.path.split('/');
-      const containingFolder = parts[parts.length - 2];
-      const containingFolderPath = parts.slice(0, -1).join('/');
-      if (containingFolder.toLowerCase() === stackLower || ancestorDirs.has(containingFolderPath)) emit(e);
+      const containingFolderPath = e.path.split('/').slice(0, -1).join('/').toLowerCase();
+      if (applicableDirs.has(containingFolderPath)) emit(e);
     }
   }
   for (const entry of index.playbooks ?? []) emit(entry);

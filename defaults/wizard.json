@@ -10,11 +10,11 @@
     "question": "Which stack does this target?",
     "multiSelect": false,
     "options": [
-      { "label": "backend-legacy-php", "description": "PHP backend (legacy)" },
-      { "label": "frontend-legacy-js", "description": "JavaScript frontend (legacy)" },
-      { "label": "twig-vue",           "description": "Twig templates + Vue components" },
-      { "label": "backend + frontend", "description": "Both backend and frontend" },
-      { "label": "maestro",            "description": "Claude Code skills, phase prompts and configs" }
+      { "label": "backend-legacy-php", "path": "stacks/backend-legacy-php", "description": "PHP backend (legacy)" },
+      { "label": "frontend-legacy-js", "path": "stacks/frontend-legacy-js", "description": "JavaScript frontend (legacy)" },
+      { "label": "twig-vue",           "path": "stacks/twig-vue",           "description": "Twig templates + Vue components" },
+      { "label": "backend + frontend",                                      "description": "Both backend and frontend" },
+      { "label": "maestro",            "path": "stacks/maestro",            "description": "Claude Code skills, phase prompts and configs" }
     ]
   },
   {

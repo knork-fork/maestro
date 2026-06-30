@@ -43,6 +43,14 @@ function submitTicket(selections) {
     .reduce((acc, s, i) => { acc[s.name.toLowerCase().replace(/\s+/g, '_')] = selections[i]; return acc; }, {});
 
   const ticket = { id: ticketId, createdAt: new Date().toISOString(), ...fields };
+
+  const stackStep = STEPS.find(s => s.name === 'Stack' && !s.isSummary);
+  if (stackStep) {
+    const selectedLabel = selections[STEPS.indexOf(stackStep)];
+    const opt = (stackStep.options ?? []).find(o => o.label === selectedLabel);
+    if (opt?.path) ticket['stack-path'] = opt.path;
+  }
+
   writeFileSync(join(ticketDir, 'ticket.json'), JSON.stringify(ticket, null, 2));
 
   let branch = null;
