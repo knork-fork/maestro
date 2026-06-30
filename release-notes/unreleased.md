@@ -1,6 +1,0 @@
-
-- Maestro stacks now load conventions from all parent directories, instead of only going one level up
-- Maestro stack definitions now support path field in wizard.json
-  - If path is not present, defaults to lowercase label as the directory name (backwards compatibility for tickets made with previous versions)
-- Stacks now collapse into a common parent stack (e.g. frontend, backend) to reduce clutter in the stack list
-- Performance fix: added `maestro set-status`, `maestro set-summary`, and `maestro get-summary` commands for updating ticket status and summary deterministically - Maestro no longer relies on the agent parsing and editing the ticket-state.json file by hand
