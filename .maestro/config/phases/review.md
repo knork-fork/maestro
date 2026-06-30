@@ -34,5 +34,5 @@ Do not advance on your own. Wait for the signal.
 
 When the user signals completion:
 1. Write a structured review report (findings by severity, overall verdict) to `.maestro/resources/tickets/{{ticket_id}}/review.md`.
-2. Read `.maestro/resources/ticket-state.json`, set `status` for this ticket to `"reviewed"`, and write the file back.
+2. Run `maestro set-status {{ticket_id}} reviewed`.
 3. Tell the user the review phase is complete and suggest running `/maestro:next` to continue.

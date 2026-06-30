@@ -29,5 +29,5 @@ Do not advance on your own. Wait for the signal.
 
 When the user signals completion:
 1. Write the final report to `.maestro/resources/tickets/{{ticket_id}}/report.md`.
-2. Read `.maestro/resources/ticket-state.json`, set `status` for this ticket to `"reported"`, and write the file back.
+2. Run `maestro set-status {{ticket_id}} reported`.
 3. Tell the user the report phase is complete.

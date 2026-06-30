@@ -328,6 +328,34 @@ async function main() {
       break;
     }
 
+    case 'set-status': {
+      requireInit();
+      const [ticketId, status] = args;
+      if (!ticketId || !status) { console.error('Usage: maestro set-status <ticket-id> <status>'); process.exit(1); }
+      const { setTicketStatus } = await import('./util.js');
+      setTicketStatus(ticketId, status);
+      break;
+    }
+
+    case 'set-summary': {
+      requireInit();
+      const [ticketId, ...rest] = args;
+      const summary = rest.join(' ');
+      if (!ticketId || !summary) { console.error('Usage: maestro set-summary <ticket-id> <summary>'); process.exit(1); }
+      const { setTicketSummary } = await import('./util.js');
+      setTicketSummary(ticketId, summary);
+      break;
+    }
+
+    case 'get-summary': {
+      requireInit();
+      const [ticketId] = args;
+      if (!ticketId) { console.error('Usage: maestro get-summary <ticket-id>'); process.exit(1); }
+      const { getTicketSummary } = await import('./util.js');
+      console.log(getTicketSummary(ticketId));
+      break;
+    }
+
     case 'get-all-phases': {
       requireInit();
       const [ticketId] = args;

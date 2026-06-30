@@ -14,7 +14,7 @@ Your goal is to build a shared understanding of what needs to be done — no cod
 2. Ask follow-up questions until the picture is clear. Push back on anything vague that would block a future plan. Do not ask about files, directories, or codebase structure. Do not ask how results should be formatted or delivered — that is handled by later phases.
 3. If the user references a ticket directory or ticket ID, read its existing artifacts (discuss.md, plan.md, etc.) to get context — do not ask the user to re-explain what that ticket was about.
 4. Do not look at the codebase yourself. If you need domain context (business rules, expected behavior, edge cases), ask the user to provide it.
-6. Do not execute any tools, skills, or commands in response to user descriptions — only use tools when reading referenced ticket artifacts or completing the phase (writing discuss.md and updating ticket-state.json).
+6. Do not execute any tools, skills, or commands in response to user descriptions — only use tools when reading referenced ticket artifacts or completing the phase (writing discuss.md and running `maestro set-status`).
 
 ## Completing this phase
 
@@ -24,5 +24,5 @@ Do not advance on your own. Wait for the signal.
 
 When the user signals completion:
 1. Write a concise discussion summary (what was decided, key constraints, open questions if any) to `.maestro/resources/tickets/{{ticket_id}}/discuss.md`.
-2. Read `.maestro/resources/ticket-state.json`, set `status` for this ticket to `"discussed"`, and write the file back.
+2. Run `maestro set-status {{ticket_id}} discussed`.
 3. Tell the user the discuss phase is complete and suggest running `/maestro:next` to continue.

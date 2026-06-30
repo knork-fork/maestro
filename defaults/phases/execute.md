@@ -30,5 +30,5 @@ Do not mark complete on your own. Wait for the signal.
 
 When the user signals completion:
 1. Write an execution summary (what was changed and why, any deviations from the plan) to `.maestro/resources/tickets/{{ticket_id}}/execute.md`.
-2. Read `.maestro/resources/ticket-state.json`, set `status` for this ticket to `"executed"`, and write the file back.
+2. Run `maestro set-status {{ticket_id}} executed`.
 3. Tell the user the execute phase is complete.

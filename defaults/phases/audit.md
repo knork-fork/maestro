@@ -20,5 +20,5 @@ Do not advance on your own. Wait for the signal.
 
 When the user signals completion:
 1. Write a structured audit report (findings by severity, overall risk assessment) to `.maestro/resources/tickets/{{ticket_id}}/audit.md`.
-2. Read `.maestro/resources/ticket-state.json`, set `status` for this ticket to `"audited"`, and write the file back.
+2. Run `maestro set-status {{ticket_id}} audited`.
 3. Tell the user the audit phase is complete and suggest running `/maestro:next` to continue.

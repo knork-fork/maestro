@@ -5,6 +5,45 @@ import { execSync } from 'child_process';
 
 const root = process.cwd();
 
+const stateFilePath = join(root, '.maestro/resources/ticket-state.json');
+
+function readState() {
+  return JSON.parse(readFileSync(stateFilePath, 'utf8'));
+}
+
+function writeState(state) {
+  writeFileSync(stateFilePath, JSON.stringify(state, null, 2));
+}
+
+// Sets the status field for a ticket. Validates the status against the allowed set
+// ('created', 'done', plus every status_when_done in phases.json) so typos are caught.
+export function setTicketStatus(ticketId, status) {
+  const phases = JSON.parse(readFileSync(join(root, '.maestro/config/phases.json'), 'utf8'));
+  const validStatuses = new Set(['created', 'done', ...phases.map(p => p.status_when_done)]);
+  if (!validStatuses.has(status)) {
+    throw new Error(`Invalid status "${status}". Valid statuses: ${[...validStatuses].join(', ')}`);
+  }
+  const state = readState();
+  if (!state[ticketId]) throw new Error(`Ticket "${ticketId}" not found in ticket-state.json`);
+  state[ticketId].status = status;
+  writeState(state);
+}
+
+// Sets the summary field for a ticket.
+export function setTicketSummary(ticketId, summary) {
+  const state = readState();
+  if (!state[ticketId]) throw new Error(`Ticket "${ticketId}" not found in ticket-state.json`);
+  state[ticketId].summary = summary;
+  writeState(state);
+}
+
+// Returns the summary for a ticket, or an empty string if none is set.
+export function getTicketSummary(ticketId) {
+  const state = readState();
+  if (!state[ticketId]) throw new Error(`Ticket "${ticketId}" not found in ticket-state.json`);
+  return state[ticketId].summary ?? '';
+}
+
 // Returns the full markdown prompt for the next phase to execute (reads the .md file).
 export function getPhaseForTicket(ticketId) {
   const ticketState = JSON.parse(readFileSync(join(root, '.maestro/resources/ticket-state.json'), 'utf8'));
@@ -37,12 +76,7 @@ export function getPhaseForTicket(ticketId) {
       throw new Error(`Phase for status "${status}" not found in pipeline steps: ${steps.join(', ')}`);
     }
     if (currentIndex >= steps.length - 1) {
-      if (status !== 'done') {
-        const stateFile = join(root, '.maestro/resources/ticket-state.json');
-        const state = JSON.parse(readFileSync(stateFile, 'utf8'));
-        state[ticketId].status = 'done';
-        writeFileSync(stateFile, JSON.stringify(state, null, 2));
-      }
+      if (status !== 'done') setTicketStatus(ticketId, 'done');
       return `Ticket ${ticketId} is complete. All phases have been finished and the ticket is now marked as done.`;
     }
     nextPhase = steps[currentIndex + 1];
@@ -50,7 +84,7 @@ export function getPhaseForTicket(ticketId) {
   }
 
   const lastPhaseNote = isLastPhase
-    ? '\n\n> **This is the last phase in the pipeline. When complete, set `status` for this ticket to `"done"` in `.maestro/resources/ticket-state.json`. Do not suggest running `/maestro:next` after completion.**'
+    ? `\n\n> **This is the last phase in the pipeline. When complete, run \`maestro set-status ${ticketId} done\`. Do not suggest running \`/maestro:next\` after completion.**`
     : '';
 
   const phaseMd = readFileSync(join(root, '.maestro/config/phases', `${nextPhase}.md`), 'utf8');

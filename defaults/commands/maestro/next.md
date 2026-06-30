@@ -47,10 +47,10 @@ Each phase picks independently. The only cross-phase channel is the artifact's "
 
 ## Run the phase
 
-Before executing the phase prompt, read `.maestro/resources/ticket-state.json` and note whether `summary` for this ticket is absent or an empty string — call this **needs-summary**.
+Before executing the phase prompt, run `maestro get-summary <ticket-id>` and note whether its output is empty — call this **needs-summary**.
 
 Follow the phase prompt, applying conventions at the moments described above.
 
 ## After the phase
 
-If **needs-summary** is true (summary was absent or empty at the start of this invocation), once the phase is complete: read `.maestro/resources/ticket-state.json`, set `summary` for this ticket to a ≤ 80-character description of what the ticket accomplishes, derived from what the user described during this phase. Keep it terse and action-oriented (e.g. `"Add --resume flag to maestro CLI"`). Write the file back.
+If **needs-summary** is true (summary was empty at the start of this invocation), once the phase is complete run `maestro set-summary <ticket-id> "<summary>"`, where `<summary>` is a ≤ 80-character description of what the ticket accomplishes, derived from what the user described during this phase. Keep it terse and action-oriented (e.g. `"Add --resume flag to maestro CLI"`).

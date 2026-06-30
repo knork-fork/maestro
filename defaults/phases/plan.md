@@ -25,5 +25,5 @@ Do not advance on your own. Wait for the signal.
 
 When the user signals completion:
 1. Write the final approved plan to `.maestro/resources/tickets/{{ticket_id}}/plan.md`.
-2. Read `.maestro/resources/ticket-state.json`, set `status` for this ticket to `"planned"`, and write the file back.
+2. Run `maestro set-status {{ticket_id}} planned`.
 3. Tell the user the plan phase is complete and suggest running `/maestro:next` to continue.
